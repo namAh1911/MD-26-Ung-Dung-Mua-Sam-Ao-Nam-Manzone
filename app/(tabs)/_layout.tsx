@@ -1,45 +1,84 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+   return (
+    
 
-  return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarShowLabel: false,
+        tabBarStyle: styles.tabBar,
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="Home"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name="home" size={24} color={focused ? '#fff' : '#FFD6D6'} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="Chat"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name="chatbubble-ellipses" size={24} color={focused ? '#fff' : '#FFD6D6'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Add"
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <View style={styles.plusIcon}>
+              <Ionicons name="add" size={28} color="#fff" />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Cart"
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name="bag-handle" size={24} color={focused ? '#fff' : '#FFD6D6'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Profile"
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name="person" size={24} color={focused ? '#fff' : '#FFD6D6'} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: '#f66',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: 70,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+  },
+  plusIcon: {
+    backgroundColor: '#000',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 30,
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+});
