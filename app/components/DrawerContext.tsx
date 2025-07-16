@@ -32,7 +32,7 @@ export const DrawerProvider = ({ children, drawerContent }: DrawerProviderProps)
     </DrawerContext.Provider>
   );
 };
-
+export default DrawerProvider;
 const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',

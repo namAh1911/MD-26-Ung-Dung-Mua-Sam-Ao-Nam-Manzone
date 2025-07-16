@@ -1,65 +1,67 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
-
-
-
-
+import { Ionicons, AntDesign } from '@expo/vector-icons';
+import axios from 'axios';
+import { AxiosError } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../src/config';
 
 export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
   const router = useRouter();
 
-  const handleContinue = () => {
-    if (!phone || !password) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ số điện thoại và mật khẩu.');
-      return;
+  const handleLogin = async () => {
+    if (!email || !password) {
+      return Alert.alert('Lỗi', 'Vui lòng nhập email và mật khẩu.');
     }
 
-    // TODO: Gọi API xác thực nếu cần
+    try {
+      const res = await axios.post(`${BASE_URL}/api/auth/login`, {
+        email,
+        password,
+      });
 
-    // Nếu thành công:
-    router.replace('/(tabs)/Home');
+      const { token, user } = res.data;
+
+      //  Lưu token và user vào AsyncStorage
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+
+      Alert.alert('Thành công', 'Đăng nhập thành công!');
+      router.replace('/(tabs)/Home'); // 👈 đổi thành tab chính của bạn
+
+    } catch (err) {
+      const error = err as AxiosError<any>;
+      const msg = error.response?.data?.message || 'Đăng nhập thất bại';
+      Alert.alert('Lỗi', msg);
+    }
+
   };
 
-
-
   return (
-
     <View style={styles.container}>
-      {/* Header */}
-
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-           router.replace('/screens/LoginScreen') // router.back(); // hoặc
-          }}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>ĐĂNG NHẬP</Text>
       </View>
 
-
-      {/* Nội dung */}
       <View style={styles.content}>
-        <Text style={styles.logo}>ManzonePoly</Text>
+        <Text style={styles.logo}>MazonePoly</Text>
         <Text style={styles.title}>XIN CHÀO,</Text>
-        <Text style={styles.sub}>Vui lòng nhập số điện thoại của bạn để tiếp tục</Text>
+        <Text style={styles.sub}>Vui lòng nhập email và mật khẩu để tiếp tục</Text>
 
-        <Text style={styles.label}>Số điện thoại</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="Nhập số điện thoại"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+          placeholder="Nhập email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
         />
+
         <Text style={styles.label}>Mật khẩu</Text>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -70,26 +72,26 @@ export default function LoginScreen() {
             onChangeText={setPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons
-
-              name={showPassword ? 'eye-off' : 'eye'}
-              size={24}
-              color="gray"
-            />
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="gray" />
           </TouchableOpacity>
         </View>
 
-
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: phone && password ? '#000' : '#ccc' }]}
-          disabled={!phone || !password}
-          onPress={handleContinue}
+          style={[styles.button, { backgroundColor: email && password ? '#000' : '#ccc' }]}
+          disabled={!email || !password}
+          onPress={handleLogin}
         >
           <Text style={styles.buttonText}>Tiếp tục</Text>
         </TouchableOpacity>
 
         <Text style={styles.registerText}>
-          Bạn chưa có tài khoản? <Text style={styles.registerLink} onPress={() => router.push('/Register')}>Đăng ký</Text>
+          Bạn chưa có tài khoản?{' '}
+          <Text
+            style={styles.registerLink}
+            onPress={() => router.push('/(auth)/RegisterScreen')}
+          >
+            Đăng ký
+          </Text>
         </Text>
 
         <View style={styles.separator}>
@@ -102,7 +104,6 @@ export default function LoginScreen() {
           <AntDesign name="google" size={24} color="#EA4335" style={{ marginRight: 8 }} />
           <Text>Tiếp tục với Google</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -117,28 +118,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 50, // cùng với paddingTop để đồng bộ
-  },
-
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 16,
-    marginTop: 5,
-    padding: 3,
-    justifyContent: 'space-between',
   },
   headerTitle: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   content: { padding: 20 },
@@ -152,6 +133,18 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 13,
     marginTop: 5,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+    marginTop: 5,
+    padding: 3,
+    justifyContent: 'space-between',
   },
   button: {
     padding: 15,
@@ -188,5 +181,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   }
-
 });

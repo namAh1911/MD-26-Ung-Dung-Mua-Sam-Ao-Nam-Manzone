@@ -2,63 +2,86 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Alert
 } from 'react-native';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { AxiosError } from 'axios';
+import { BASE_URL } from '../src/config';
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const router = useRouter();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const router = useRouter();
-
-  const handleRegister = () => {
-    if (!name || !phone || !password) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin.');
-      return;
+  const handleRegister = async () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      return Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
+    }
+    if (password !== confirmPassword) {
+      return Alert.alert('Lỗi', 'Mật khẩu nhập lại không khớp');
     }
 
-    // TODO: Gửi API tạo tài khoản
+    try {
+      // Gửi OTP đến email
+      await axios.post(`${BASE_URL}/api/auth/register`, {
+        full_name: fullName,
+        email,
+        password,
+      });
 
-    // Nếu thành công, chuyển sang login hoặc home:
-    router.replace('/Login');
+      // Lưu dữ liệu tạm để dùng khi xác minh OTP
+      await AsyncStorage.setItem("pendingRegister", JSON.stringify({
+        full_name: fullName,
+        email,
+        password,
+      }));
+
+      Alert.alert("Thành công", "Đã gửi mã OTP đến email");
+      router.push({
+        pathname: '/(auth)/OTPVerifyScreen',
+        params: { email }
+      });
+
+    } catch (err) {
+          const error = err as AxiosError<any>;
+          const msg = error.response?.data?.message || 'Đăng ký thất bại';
+          Alert.alert('Lỗi', msg);
+        }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => {
-            router.replace('/screens/LoginScreen') // router.back(); // hoặc
-          }}>
+          onPress={() => router.replace('/(auth)/Register_LoginScreen')}
+        >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>ĐĂNG KÝ</Text>
       </View>
 
-      {/* Nội dung */}
       <View style={styles.content}>
-        <Text style={styles.title}>NHẬP THÔNG TIN CỦA BẠN</Text>
-        <Text style={styles.sub}>Vui lòng nhập mật khẩu để đăng nhập</Text>
-
         <Text style={styles.label}>Họ tên</Text>
         <TextInput
           style={styles.input}
           placeholder="Nhập họ tên"
-          value={name}
-          onChangeText={setName}
+          value={fullName}
+          onChangeText={setFullName}
         />
 
-        <Text style={styles.label}>Số điện thoại</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="Nhập số điện thoại"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+          placeholder="Nhập email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Text style={styles.label}>Mật khẩu</Text>
@@ -79,28 +102,23 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: name && phone && password ? '#2e5ae1' : '#ccc' }]}
-          disabled={!name || !phone || !password}
-          onPress={handleRegister}
-        >
-          <Text style={styles.buttonText}>Đăng ký</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.loginText}>
-          Bạn chưa có tài khoản?{' '}
-          <Text style={styles.loginLink} onPress={() => router.push('/Login')}>Đăng nhập</Text>
-        </Text>
-
-        <View style={styles.separator}>
-          <View style={styles.line} />
-          <Text style={styles.or}>Hoặc</Text>
-          <View style={styles.line} />
+        <Text style={styles.label}>Nhập lại mật khẩu</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={{ flex: 1 }}
+            placeholder="Nhập lại mật khẩu"
+            secureTextEntry={!showPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
         </View>
 
-        <TouchableOpacity style={styles.googleButton}>
-          <AntDesign name="google" size={24} color="#EA4335" style={{ marginRight: 8 }} />
-          <Text>Tiếp tục với Google</Text>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: fullName && email && password && confirmPassword ? '#2e5ae1' : '#ccc' }]}
+          onPress={handleRegister}
+          disabled={!fullName || !email || !password || !confirmPassword}
+        >
+          <Text style={styles.buttonText}>Gửi mã OTP</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -132,8 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   content: { padding: 20 },
-  title: { fontSize: 18, fontWeight: 'bold', marginTop: 10 },
-  sub: { color: '#555', marginBottom: 20 },
   label: { marginTop: 15, color: '#555', fontWeight: 'bold' },
   input: {
     borderWidth: 1,
@@ -161,32 +177,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: { color: '#fff', fontWeight: 'bold' },
-  loginText: { textAlign: 'center', marginTop: 20 },
-  loginLink: { color: '#2e5ae1', fontWeight: 'bold' },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 30,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  or: {
-    marginHorizontal: 10,
-    color: '#999',
-  },
-  googleButton: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
 });

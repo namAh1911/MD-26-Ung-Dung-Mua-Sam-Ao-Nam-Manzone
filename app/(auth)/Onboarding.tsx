@@ -29,13 +29,13 @@ export default function Onboarding() {
 
     const handleNext = () => {
         if (index === slides.length - 1) {
-            router.replace('/screens/LoginScreen');
+            router.replace('/(auth)/Register_LoginScreen');
         } else {
             setIndex(index + 1);
         }
     };
 
-    const handleSkip = () => router.replace('/screens/LoginScreen');
+    const handleSkip = () => router.replace('/(auth)/Register_LoginScreen');
 
     // Khi index thay đổi, cuộn FlatList tới vị trí tương ứng
     useEffect(() => {

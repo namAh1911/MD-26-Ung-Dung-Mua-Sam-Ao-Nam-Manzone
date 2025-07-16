@@ -1,72 +1,91 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome5, Entypo, AntDesign, FontAwesome } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
+import {
+  Ionicons, MaterialIcons, FontAwesome5, Entypo, AntDesign, FontAwesome
+} from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { BASE_URL } from '../src/config';
+import { useFocusEffect } from 'expo-router';
 
 export default function Profile() {
   const router = useRouter();
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  const [user, setUser] = useState({
-    name: 'Name User',
-    avatar: 'https://tse1.mm.bing.net/th?id=OIP.nRbqJgggShiTGvXdOJDTogHaHa&pid=Api&P=0&h=220',
-  });
-
-  useEffect(() => {
+  useFocusEffect(
+  React.useCallback(() => {
     const fetchUser = async () => {
       try {
-        //  Giả lập gọi API lấy user info (có thể thay bằng API thật sau này)
-        const response = await new Promise<{ name: string; avatar: string }>((resolve) =>
-          setTimeout(() => resolve({
-            name: 'Nguyễn Văn A',
-            avatar: 'https://tse1.mm.bing.net/th?id=OIP.nRbqJgggShiTGvXdOJDTogHaHa&pid=Api&P=0&h=220',
-          }), 1000)
-        );
-        setUser(response);
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          Alert.alert("Lỗi", "Chưa đăng nhập");
+          return router.replace("/(auth)/LoginScreen");
+        }
+
+        const res = await axios.get(`${BASE_URL}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setUser(res.data);
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin người dùng:', error);
+        console.error("Lỗi khi lấy thông tin người dùng:", error);
+        Alert.alert("Lỗi", "Không thể tải thông tin người dùng");
       }
     };
 
     fetchUser();
-  }, []);
+  }, [])
+);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("token");
     setLogoutVisible(false);
-    // 👉 Chuyển hướng về màn hình login
-    router.replace('/Login'); // hoặc router.push('/login') nếu bạn không muốn xóa stack
+    router.replace('/(auth)/LoginScreen');
   };
+
+  const handleNavigate = (label: string) => {
+    if (label === 'Thông tin cá nhân') {
+      router.push('/(auth)/EditProfileScreen');
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <View style={{ flex: 1 }}>
-       {/* Modal xác nhận đăng xuất */}
-        <Modal
-          visible={logoutVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setLogoutVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={{ fontSize: 16, marginBottom: 10 }}>Bạn có chắc muốn đăng xuất?</Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={handleLogout} style={styles.modalBtn}>
-                  <Text style={styles.modalBtnText}>Đăng xuất</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setLogoutVisible(false)} style={styles.modalBtnCancel}>
-                  <Text style={styles.modalBtnTextCancel}>Huỷ</Text>
-                </TouchableOpacity>
-              </View>
+      {/* Modal xác nhận đăng xuất */}
+      <Modal
+        visible={logoutVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogoutVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={{ fontSize: 16, marginBottom: 10 }}>Bạn có chắc muốn đăng xuất?</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <TouchableOpacity onPress={handleLogout} style={styles.modalBtn}>
+                <Text style={styles.modalBtnText}>Đăng xuất</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setLogoutVisible(false)} style={styles.modalBtnCancel}>
+                <Text style={styles.modalBtnTextCancel}>Huỷ</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          <Image
+            source={{ uri: user.avatar_url || 'https://via.placeholder.com/150' }}
+            style={styles.avatar}
+          />
           <View>
-            <Text style={styles.name}>{user.name}</Text>
+            <Text style={styles.name}>{user.full_name}</Text>
             <Text style={styles.welcome}>Chào mừng đến với ứng dụng</Text>
           </View>
           <TouchableOpacity style={styles.logoutBtn} onPress={() => setLogoutVisible(true)}>
@@ -74,7 +93,8 @@ export default function Profile() {
           </TouchableOpacity>
         </View>
 
-        {/* Order status */}
+
+        {/* Đơn hàng */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Đơn của tôi</Text>
           <View style={styles.orderRow}>
@@ -94,9 +114,10 @@ export default function Profile() {
             { icon: 'location', label: 'Quản lý sổ địa chỉ' },
             { icon: 'language', label: 'Ngôn ngữ' },
           ]}
+          onPressItem={handleNavigate}
         />
 
-        {/* Về ManzonePoly */}
+        {/* Thông tin thêm */}
         <AccountSection
           title="Về ManzonePoly"
           items={[
@@ -107,19 +128,13 @@ export default function Profile() {
             { icon: 'car', label: 'Chính sách giao hàng' },
           ]}
         />
-        
-      
-
-     
-        
-        </ScrollView>
+      </ScrollView>
     </View>
   );
 }
 
-// ✅ Component OrderStatus
 const OrderStatus = ({ iconLib, icon, text }: { iconLib: string; icon: string; text: string }) => {
-  let IconComponent;
+  let IconComponent: any;
 
   switch (iconLib) {
     case 'AntDesign':
@@ -140,25 +155,30 @@ const OrderStatus = ({ iconLib, icon, text }: { iconLib: string; icon: string; t
 
   return (
     <View style={{ alignItems: 'center' }}>
-      <IconComponent name={icon as any} size={24} color="#0039e6" />
+      <IconComponent name={icon} size={24} color="#0039e6" />
       <Text style={{ color: '#0039e6', marginTop: 4 }}>{text}</Text>
     </View>
   );
 };
 
-// ✅ Component danh mục tài khoản
 const AccountSection = ({
   title,
   items,
+  onPressItem,
 }: {
   title: string;
   items: { icon: string; label: string }[];
+  onPressItem?: (label: string) => void;
 }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
     <View style={styles.box}>
       {items.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.row}>
+        <TouchableOpacity
+          key={index}
+          style={styles.row}
+          onPress={() => onPressItem?.(item.label)}
+        >
           <Ionicons name={item.icon as any} size={20} color="#0039e6" />
           <Text style={styles.rowText}>{item.label}</Text>
           <Entypo name="chevron-right" size={18} color="#999" />
@@ -227,13 +247,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#333',
   },
-  // Modal styles
-   modalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    
   },
   modalContent: {
     width: '80%',
@@ -242,12 +260,11 @@ const styles = StyleSheet.create({
     padding: 20,
     elevation: 5,
     alignItems: 'center',
-
   },
   modalBtn: {
     backgroundColor: '#f66',
     padding: 10,
-    margin:10,
+    margin: 10,
     borderRadius: 5,
     minWidth: 135,
     alignItems: 'center',
@@ -259,7 +276,7 @@ const styles = StyleSheet.create({
   modalBtnCancel: {
     backgroundColor: '#eee',
     padding: 10,
-    margin:10,
+    margin: 10,
     borderRadius: 5,
     minWidth: 135,
     alignItems: 'center',

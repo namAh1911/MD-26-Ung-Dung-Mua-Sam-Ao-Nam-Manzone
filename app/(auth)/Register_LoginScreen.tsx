@@ -10,10 +10,10 @@ export default function LoginScreen() {
       <Image source={require('../../assets/images/logoManzone.png')} style={styles.logo} />
       <Text style={styles.title}>Khám phá phong cách của bạn một cách dễ dàng.</Text>
       <Text style={styles.title2}>Thời trang nam cung cấp vô số lựa chọn—từ giản dị đến sang trọng. Luôn tự tin, luôn phong cách.</Text>
-      <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/Login')}>
+      <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/LoginScreen')}>
         <Text style={styles.btnText}>Đăng Nhập</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.btnOutline} onPress={() => router.push('/Register')}>
+      <TouchableOpacity style={styles.btnOutline} onPress={() => router.push('/RegisterScreen')}>
         <Text style={styles.btnOutlineText}>Đăng Ký</Text>
       </TouchableOpacity>
     </View>
