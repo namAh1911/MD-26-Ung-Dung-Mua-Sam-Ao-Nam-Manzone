@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { AxiosError } from 'axios';
-import { BASE_URL } from '../src/config';
+import { useAuth } from '../src/AuthContext'; // sử dụng AuthContext thay vì axios trực tiếp
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { register } = useAuth(); // Lấy hàm register từ context
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,35 +30,21 @@ export default function RegisterScreen() {
     }
 
     try {
-      // Gửi OTP đến email
-      await axios.post(`${BASE_URL}/api/auth/register`, {
-        full_name: fullName,
-        email,
-        password,
-      });
+      await register(fullName, email, password); // Gọi API từ context
+      Alert.alert('Thành công', 'Đã gửi mã OTP đến email');
 
-      // Lưu dữ liệu tạm để dùng khi xác minh OTP
-      await AsyncStorage.setItem("pendingRegister", JSON.stringify({
-        full_name: fullName,
-        email,
-        password,
-      }));
-
-      Alert.alert("Thành công", "Đã gửi mã OTP đến email");
       router.push({
         pathname: '/(auth)/OTPVerifyScreen',
-        params: { email }
+        params: { email },
       });
-
-    } catch (err) {
-          const error = err as AxiosError<any>;
-          const msg = error.response?.data?.message || 'Đăng ký thất bại';
-          Alert.alert('Lỗi', msg);
-        }
+    } catch (err: any) {
+      Alert.alert('Lỗi', err.message || 'Đăng ký thất bại');
+    }
   };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -65,6 +55,7 @@ export default function RegisterScreen() {
         <Text style={styles.headerTitle}>ĐĂNG KÝ</Text>
       </View>
 
+      {/* Nội dung */}
       <View style={styles.content}>
         <Text style={styles.label}>Họ tên</Text>
         <TextInput
@@ -87,7 +78,7 @@ export default function RegisterScreen() {
         <Text style={styles.label}>Mật khẩu</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={{ flex: 1 }}
+            style={styles.passwordInput}
             placeholder="Nhập mật khẩu"
             secureTextEntry={!showPassword}
             value={password}
@@ -105,7 +96,7 @@ export default function RegisterScreen() {
         <Text style={styles.label}>Nhập lại mật khẩu</Text>
         <View style={styles.passwordContainer}>
           <TextInput
-            style={{ flex: 1 }}
+            style={styles.passwordInput}
             placeholder="Nhập lại mật khẩu"
             secureTextEntry={!showPassword}
             value={confirmPassword}
@@ -114,7 +105,15 @@ export default function RegisterScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: fullName && email && password && confirmPassword ? '#2e5ae1' : '#ccc' }]}
+          style={[
+            styles.button,
+            {
+              backgroundColor:
+                fullName && email && password && confirmPassword
+                  ? '#2e5ae1'
+                  : '#ccc',
+            },
+          ]}
           onPress={handleRegister}
           disabled={!fullName || !email || !password || !confirmPassword}
         >
@@ -125,6 +124,7 @@ export default function RegisterScreen() {
   );
 }
 
+// ================= STYLES ================= //
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
@@ -150,7 +150,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   content: { padding: 20 },
-  label: { marginTop: 15, color: '#555', fontWeight: 'bold' },
+  label: {
+    marginTop: 15,
+    color: '#555',
+    fontWeight: 'bold',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -167,8 +171,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
     marginTop: 5,
-    padding: 3,
+    paddingVertical: 8,
     justifyContent: 'space-between',
+  },
+  passwordInput: {
+    flex: 1,
   },
   button: {
     padding: 15,
@@ -176,5 +183,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
   },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });

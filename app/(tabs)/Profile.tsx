@@ -2,45 +2,17 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Ale
 import {
   Ionicons, MaterialIcons, FontAwesome5, Entypo, AntDesign, FontAwesome
 } from '@expo/vector-icons';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { BASE_URL } from '../src/config';
-import { useFocusEffect } from 'expo-router';
+import { useAuth } from '../src/AuthContext';
 
 export default function Profile() {
   const router = useRouter();
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useFocusEffect(
-  React.useCallback(() => {
-    const fetchUser = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          Alert.alert("Lỗi", "Chưa đăng nhập");
-          return router.replace("/(auth)/LoginScreen");
-        }
-
-        const res = await axios.get(`${BASE_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setUser(res.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy thông tin người dùng:", error);
-        Alert.alert("Lỗi", "Không thể tải thông tin người dùng");
-      }
-    };
-
-    fetchUser();
-  }, [])
-);
+  const { user, logout } = useAuth(); // Lấy user và hàm logout từ context
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("token");
+    await logout(); // Dùng hàm logout từ context
     setLogoutVisible(false);
     router.replace('/(auth)/LoginScreen');
   };
@@ -49,9 +21,19 @@ export default function Profile() {
     if (label === 'Thông tin cá nhân') {
       router.push('/(auth)/EditProfileScreen');
     }
+    if (label === 'Đổi mật khẩu') {
+      router.push('/(auth)/ChangePasswordScreen');
+    }
   };
 
-  if (!user) return null;
+
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Đang tải thông tin người dùng...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>

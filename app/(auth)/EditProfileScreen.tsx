@@ -12,12 +12,13 @@ import { RadioButton } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import axios, { AxiosError } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { BASE_URL } from '../src/config';
+import { useAuth } from '../src/AuthContext';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { user, token, refreshUser } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -27,34 +28,27 @@ export default function EditProfileScreen() {
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
+  // ✅ Luôn load lại thông tin user từ server khi vào màn hình
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`${BASE_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const user = res.data;
-        setFullName(user.full_name || '');
-        setPhoneNumber(user.phone_number || '');
-        setGender(user.gender || 0);
-        setEmail(user.email);
-        setAvatarUrl(user.avatar_url || '');
-        if (user.date_of_birth) setDateOfBirth(new Date(user.date_of_birth));
-      } catch (error) {
-        const axiosErr = error as AxiosError;
-        console.log('Lỗi khi lấy thông tin người dùng:', axiosErr?.response?.data || axiosErr?.message);
-        Alert.alert('Lỗi', 'Không thể tải thông tin người dùng');
-      }
-    };
-
-    fetchUser();
+    refreshUser();
   }, []);
+
+  // ✅ Sau khi user cập nhật → đồng bộ vào form
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || '');
+      setPhoneNumber(user.phone_number || '');
+      setGender(user.gender || 0);
+      setEmail(user.email || '');
+      setAvatarUrl(user.avatar_url || '');
+      if (user.date_of_birth) {
+        setDateOfBirth(new Date(user.date_of_birth));
+      }
+    }
+  }, [user]);
 
   const handleUpdate = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
       await axios.put(
         `${BASE_URL}/api/users/update-profile`,
         {
@@ -65,10 +59,13 @@ export default function EditProfileScreen() {
           avatar_url: avatarUrl,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
+      await refreshUser();
       Alert.alert('Thành công', 'Cập nhật thông tin thành công');
       router.back();
     } catch (err) {
@@ -102,30 +99,20 @@ export default function EditProfileScreen() {
         uri: image.uri,
         name: `avatar.${extension}`,
         type: fileType,
-      } as any); // thêm `as any` để tránh lỗi TypeScript khi dùng trong Expo
-
+      } as any);
 
       try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          Alert.alert('Lỗi', 'Chưa đăng nhập hoặc token đã hết hạn');
-          return;
-        }
-
         const res = await axios.post(`${BASE_URL}/api/upload/avatar`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`,
           },
-          transformRequest: (data, headers) => {
-            return data; // bắt buộc với Expo để gửi đúng multipart
-          },
+          transformRequest: (data) => data,
         });
 
-
         const uploadedUrl = res.data.url;
-        console.log('Uploaded avatar URL:', uploadedUrl);
         setAvatarUrl(uploadedUrl);
+        await refreshUser();
       } catch (error) {
         const axiosErr = error as AxiosError;
         console.error('Upload error:', axiosErr?.response?.data || axiosErr?.message);
@@ -136,14 +123,14 @@ export default function EditProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Thông tin cá nhân</Text>
+
+      <View style={styles.headerBar}>
+        <Text style={styles.headerText}>THÔNG TIN CÁ NHÂN</Text>
+      </View>
+<View style={styles.container1}>
       <TouchableOpacity onPress={handlePickAvatar} style={styles.avatarWrapper}>
         {avatarUrl ? (
-          <Image
-            key={avatarUrl} // Force re-render if avatar URL changes
-            source={{ uri: avatarUrl }}
-            style={styles.avatar}
-          />
+          <Image key={avatarUrl} source={{ uri: avatarUrl }} style={styles.avatar} />
         ) : (
           <Image
             source={require('../../assets/images/react-logo.png')}
@@ -154,7 +141,6 @@ export default function EditProfileScreen() {
           <Text style={{ color: '#fff', fontSize: 14 }}>✎</Text>
         </View>
       </TouchableOpacity>
-
 
       <Text style={styles.profileLabel}>Profile</Text>
 
@@ -218,22 +204,35 @@ export default function EditProfileScreen() {
       <TouchableOpacity style={styles.button} onPress={handleUpdate}>
         <Text style={styles.buttonText}>Cập Nhật</Text>
       </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 0, backgroundColor: '#fff' },
+  container1: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  headerBar: {
+    backgroundColor: '#FF4D4D',
+    paddingVertical: 30,
+    alignItems: 'center',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    marginBottom: 24,
+  },
+  headerText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+    textTransform: 'uppercase',
+  },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  avatarWrapper: {
-    alignSelf: 'center',
-    marginVertical: 10,
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-  },
+  avatarWrapper: { alignSelf: 'center', marginVertical: 10 },
+  avatar: { width: 90, height: 90, borderRadius: 45 },
   editIcon: {
     position: 'absolute',
     bottom: 0,
@@ -249,11 +248,7 @@ const styles = StyleSheet.create({
     color: '#2e5ae1',
     marginBottom: 10,
   },
-  label: {
-    marginTop: 10,
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  label: { marginTop: 10, fontSize: 14, fontWeight: '500' },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -266,9 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
   },
-  genderText: {
-    marginRight: 20,
-  },
+  genderText: { marginRight: 20 },
   button: {
     marginTop: 30,
     backgroundColor: '#f66',
@@ -276,8 +269,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
 });

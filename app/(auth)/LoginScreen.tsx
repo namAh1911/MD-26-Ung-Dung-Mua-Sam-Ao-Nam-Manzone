@@ -2,10 +2,11 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
-import axios from 'axios';
-import { AxiosError } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../src/config';
+// import axios from 'axios';
+// import { AxiosError } from 'axios';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { BASE_URL } from '../src/config';
+import { useAuth } from '../src/AuthContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -13,33 +14,22 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  const { login } = useAuth(); // gọi hàm từ context
+
   const handleLogin = async () => {
     if (!email || !password) {
       return Alert.alert('Lỗi', 'Vui lòng nhập email và mật khẩu.');
     }
 
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/login`, {
-        email,
-        password,
-      });
-
-      const { token, user } = res.data;
-
-      //  Lưu token và user vào AsyncStorage
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-
+      await login(email, password); // 👈 dùng context login
       Alert.alert('Thành công', 'Đăng nhập thành công!');
-      router.replace('/(tabs)/Home'); // 👈 đổi thành tab chính của bạn
-
-    } catch (err) {
-      const error = err as AxiosError<any>;
-      const msg = error.response?.data?.message || 'Đăng nhập thất bại';
-      Alert.alert('Lỗi', msg);
+      router.replace('/(tabs)/Home'); // hoặc tab chính
+    } catch (err: any) {
+      Alert.alert('Lỗi', err.message);
     }
-
   };
+
 
   return (
     <View style={styles.container}>
