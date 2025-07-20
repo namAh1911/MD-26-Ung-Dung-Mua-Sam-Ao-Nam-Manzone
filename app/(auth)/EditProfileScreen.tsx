@@ -76,50 +76,52 @@ export default function EditProfileScreen() {
   };
 
   const handlePickAvatar = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Lỗi', 'Bạn cần cho phép truy cập thư viện ảnh');
-      return;
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permissionResult.granted) {
+    Alert.alert('Lỗi', 'Bạn cần cho phép truy cập thư viện ảnh');
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.7,
+  });
+
+  if (!result.canceled && result.assets.length > 0) {
+    const image = result.assets[0];
+    const extension = image.uri.split('.').pop();
+    const fileType = `image/${extension}`;
+
+    const formData = new FormData();
+    formData.append('avatar', {
+      uri: image.uri,
+      name: `avatar.${extension}`,
+      type: fileType,
+    } as any);
+
+    try {
+      const res = await axios.post(`${BASE_URL}/api/upload/avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+        transformRequest: (data) => data,
+      });
+
+      const uploadedUrl = res.data.url;
+      setAvatarUrl(uploadedUrl);
+      await refreshUser();
+      Alert.alert('Thành công', 'Ảnh đại diện đã được cập nhật');
+    } catch (error) {
+      const axiosErr = error as AxiosError;
+      console.error('Upload error:', axiosErr?.response?.data || axiosErr?.message);
+      Alert.alert('Lỗi', 'Không thể tải ảnh lên');
     }
+  }
+};
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      const image = result.assets[0];
-      const extension = image.uri.split('.').pop();
-      const fileType = `image/${extension}`;
-
-      const formData = new FormData();
-      formData.append('avatar', {
-        uri: image.uri,
-        name: `avatar.${extension}`,
-        type: fileType,
-      } as any);
-
-      try {
-        const res = await axios.post(`${BASE_URL}/api/upload/avatar`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-          transformRequest: (data) => data,
-        });
-
-        const uploadedUrl = res.data.url;
-        setAvatarUrl(uploadedUrl);
-        await refreshUser();
-      } catch (error) {
-        const axiosErr = error as AxiosError;
-        console.error('Upload error:', axiosErr?.response?.data || axiosErr?.message);
-        Alert.alert('Lỗi', 'Không thể tải ảnh lên');
-      }
-    }
-  };
 
   return (
     <View style={styles.container}>
