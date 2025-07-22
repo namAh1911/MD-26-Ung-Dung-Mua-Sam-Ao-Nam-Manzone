@@ -1,11 +1,49 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Image, FlatList, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Image,
+  FlatList,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import TopBar from '../components/TopBar';
 import Carousel from 'react-native-reanimated-carousel';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
+import { BASE_URL } from '../src/config'; // Đảm bảo bạn có dòng này
 
+export type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  rating?: number;
+};
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const screenWidth = Dimensions.get('window').width;
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products?featured=true`);
+        setFeaturedProducts(res.data);
+      } catch (error) {
+        console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
   const categories = [
     {
       id: 1,
@@ -28,73 +66,40 @@ export default function HomeScreen() {
       image: require('../../assets/images/hoodie.png'),
     },
   ];
+
   const banners = [
-    { id: '1', image: require('../../assets/images/banner1.jpg'), },
+    { id: '1', image: require('../../assets/images/banner1.jpg') },
     { id: '2', image: require('../../assets/images/banner2.jpg') },
     { id: '3', image: require('../../assets/images/banner3.jpg') },
   ];
 
-  const screenWidth = Dimensions.get('window').width;
-  const featuredProducts = [
-    {
-      id: '1',
-      name: 'Áo Thun In Hình Đẹp',
-      price: 80000,
-      oldPrice: 90000,
-      rating: 4.2,
-      image: require('../../assets/images/product1.png'),
-    },
-    {
-      id: '2',
-      name: 'Áo Thun In Hình Đẹp',
-      price: 80000,
-      oldPrice: 90000,
-      rating: 4.2,
-      image: require('../../assets/images/product1.png'),
-    },
-    {
-      id: '2',
-      name: 'Áo Thun In Hình Đẹp',
-      price: 80000,
-      oldPrice: 90000,
-      rating: 4.2,
-      image: require('../../assets/images/product1.png'),
-    },
-    {
-      id: '2',
-      name: 'Áo Thun In Hình Đẹp',
-      price: 80000,
-      oldPrice: 90000,
-      rating: 4.2,
-      image: require('../../assets/images/product1.png'),
-    },
-    // thêm nhiều sản phẩm 
-  ];
-
-  const renderProduct = ({ item }) => (
-    <View style={styles.productItem}>
-      <Image source={item.image} style={styles.productImage} />
+  const renderProduct = ({ item }: { item: Product }) => (
+    <TouchableOpacity
+      style={styles.productItem}
+      onPress={() =>
+        router.push({ pathname: '/(auth)/ProductDetail', params: { id: item._id } })
+      }
+    >
+      <Image source={{ uri: item.image }} style={styles.productImage} />
       <Text style={styles.productName}>{item.name}</Text>
       <Text style={styles.productPrice}>{item.price.toLocaleString()}đ</Text>
-      <Text style={styles.oldPrice}>{item.oldPrice.toLocaleString()}đ</Text>
+      <Text style={styles.oldPrice}>
+        {(item.oldPrice || item.price * 1.2).toLocaleString()}đ
+      </Text>
       <View style={styles.ratingContainer}>
         <Ionicons name="star" size={14} color="#fff" />
-        <Text style={styles.ratingText}>{item.rating}</Text>
+        <Text style={styles.ratingText}>{item.rating || 4.5}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
-
-
   return (
-
-
     <View style={styles.featuredWrapper}>
       <TopBar />
 
       <View style={styles.greetingSection}>
         <Text style={styles.greeting}>
-          Xin chào, <Text style={{ fontWeight: 'bold' }}>Nam!</Text>
+          Xin chào <Text style={{ fontWeight: 'bold' }}>!</Text>
         </Text>
         <Text style={styles.subGreeting}>
           Welcome to ManzonePoly – Where Men’s Fashion Begins
@@ -107,7 +112,6 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.categoryContainer}>
-        <View style={{ padding: 0,}}>
         <FlatList
           data={categories}
           horizontal
@@ -122,9 +126,8 @@ export default function HomeScreen() {
             </View>
           )}
         />
-        </View>
 
-        <View style={{ paddingHorizontal: 10, marginTop:10, marginBottom:10 }}>
+        <View style={{ paddingHorizontal: 10, marginTop: 10, marginBottom: 10 }}>
           <Carousel
             width={screenWidth - 20}
             height={150}
@@ -145,29 +148,25 @@ export default function HomeScreen() {
 
           <FlatList
             data={featuredProducts}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item._id}
             numColumns={2}
             columnWrapperStyle={{ justifyContent: 'space-between' }}
             renderItem={renderProduct}
             showsVerticalScrollIndicator={false}
             scrollEnabled={true}
-            style={{ height:365, backgroundColor: '#ffd6d2',padding:10,
-
-             }} // Bạn có thể thay đổi chiều cao phù hợp
+            style={{
+              height: 335,
+              backgroundColor: '#ffd6d2',
+              padding: 10,
+              
+            }}
           />
         </View>
-
-
       </View>
-
-
-
-
-
-
     </View>
   );
 }
+
 const styles = StyleSheet.create({
 
   container: {
@@ -276,7 +275,7 @@ const styles = StyleSheet.create({
 
   productImage: {
     width: '100%',
-    height: 120,
+    height: 130,
     borderRadius: 8,
     resizeMode: 'cover',
   },
@@ -330,6 +329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     borderTopRightRadius: 30,
     borderTopLeftRadius: 30,
+    
     
     
   },
