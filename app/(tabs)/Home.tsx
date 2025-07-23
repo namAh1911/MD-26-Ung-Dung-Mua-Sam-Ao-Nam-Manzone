@@ -15,7 +15,7 @@ import TopBar from '../components/TopBar';
 import Carousel from 'react-native-reanimated-carousel';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
-import { BASE_URL } from '../src/config'; // Đảm bảo bạn có dòng này
+import { BASE_URL } from '../src/config';
 
 export type Product = {
   _id: string;
@@ -47,23 +47,23 @@ export default function HomeScreen() {
   const categories = [
     {
       id: 1,
-      title: 'Áo thun (T-Shirts)',
+      title: 'Danh mục',
       image: require('../../assets/images/tshirt.png'),
     },
     {
       id: 2,
-      title: 'Áo khoác (Jackets)',
-      image: require('../../assets/images/jacket.png'),
+      title: 'Yêu thích',
+      image: require('../../assets/images/icon_heat.png'),
     },
     {
       id: 3,
-      title: 'Áo sơ mi (Shirt)',
-      image: require('../../assets/images/shirt.png'),
+      title: 'Mới nhất',
+      image: require('../../assets/images/icon_new.png'),
     },
     {
       id: 4,
-      title: 'Áo hoodie',
-      image: require('../../assets/images/hoodie.png'),
+      title: 'Ưu đãi',
+      image: require('../../assets/images/icon_sale.png'),
     },
   ];
 
@@ -72,6 +72,25 @@ export default function HomeScreen() {
     { id: '2', image: require('../../assets/images/banner2.jpg') },
     { id: '3', image: require('../../assets/images/banner3.jpg') },
   ];
+
+  const handleCategoryPress = (id: number) => {
+    switch (id) {
+      case 1:
+        router.push('/(auth)/CategoryList');
+        break;
+      case 2:
+        router.push('/(auth)/FavoriteProducts');
+        break;
+      case 3:
+        router.push('/(auth)/NewestProducts');
+        break;
+      case 4:
+        router.push('/(auth)/DiscountProducts');
+        break;
+      default:
+        break;
+    }
+  };
 
   const renderProduct = ({ item }: { item: Product }) => (
     <TouchableOpacity
@@ -112,22 +131,29 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.categoryContainer}>
-        <FlatList
+        <View style={styles.catefory2}>
+
+
+          <FlatList
           data={categories}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => (
-            <View style={styles.categoryBox}>
-              <View style={styles.imageWrapper}>
-                <Image source={item.image} style={styles.categoryImage2} />
+            <TouchableOpacity
+              style={styles.categoryItem}
+              onPress={() => handleCategoryPress(item.id)}
+            >
+              <View style={styles.categoryCircle}>
+                <Image source={item.image} style={styles.categoryIcon} />
               </View>
-              <Text style={styles.categoryText}>{item.title}</Text>
-            </View>
+              <Text style={styles.categoryLabel}>{item.title}</Text>
+            </TouchableOpacity>
           )}
         />
-
-        <View style={{ paddingHorizontal: 10, marginTop: 10, marginBottom: 10 }}>
+        </View>
+        <View style={{ paddingHorizontal: 10, marginTop: 0, marginBottom: 10 }}>
           <Carousel
             width={screenWidth - 20}
             height={150}
@@ -155,10 +181,14 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             scrollEnabled={true}
             style={{
-              height: 335,
+              height: 400,
               backgroundColor: '#ffd6d2',
               padding: 10,
+              marginBottom:40,
+              paddingBottom: 10,
+
               
+
             }}
           />
         </View>
@@ -184,7 +214,7 @@ const styles = StyleSheet.create({
   subGreeting: {
     fontSize: 14,
     color: '#fff',
-    marginBottom: 15,
+    marginBottom: 5,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -192,7 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 3,
   },
   searchInput: {
     flex: 1,
@@ -208,36 +238,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 5,
   },
-  categoryImage: {
-    width: 40,
-    height: 40,
-  },
+
   categoryContainer: {
-    backgroundColor: '#eee',
+    backgroundColor: '#FFD6D2',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingVertical: 20,
+    paddingVertical: 0,
     paddingHorizontal: 0,
     marginTop: 1,
 
   },
+  catefory2: {
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 0,
 
-  categoryBox: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 5,
-    marginLeft: 19,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3, // bóng cho Android
-    width: 80,
+    padding: 20,
+
   },
+
 
   imageWrapper: {
     width: 40,
@@ -247,23 +266,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  categoryImage2: {
-    width: 35,
-    height: 35,
-    resizeMode: 'contain',
-  },
 
-  categoryText: {
-    fontSize: 12,
-    color: '#000',
-    textAlign: 'center',
-  },
+
+
 
   productItem: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
-    marginBottom: 15,
+    marginBottom: 20,
     width: '48%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -322,16 +333,16 @@ const styles = StyleSheet.create({
   },
 
   featuredSection: {
-    
+
     backgroundColor: '#FFD6D2',
-    paddingTop: 1,
+    paddingTop: 0,
     paddingBottom: 0,
     paddingHorizontal: 0,
     borderTopRightRadius: 30,
     borderTopLeftRadius: 30,
-    
-    
-    
+
+
+
   },
 
   featuredTitle: {
@@ -341,10 +352,40 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#3366FF',
     paddingVertical: 6,
-    paddingHorizontal: 100,
-    borderRadius: 10,
-    marginBottom:10
+    paddingHorizontal: 137,
+    borderRadius: 15,
+    marginBottom: 0,
+
 
   },
+
+
+  categoryItem: {
+    alignItems: 'center',
+    marginHorizontal: 22,
+  },
+  categoryCircle: {
+    backgroundColor: '#ffffffff',
+    borderRadius: 999,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  categoryIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+  },
+  categoryLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+    color: '#333',
+    maxWidth: 80,
+    fontWeight: 'bold',
+
+  },
+
 
 });
