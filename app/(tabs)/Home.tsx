@@ -16,7 +16,11 @@ import Carousel from 'react-native-reanimated-carousel';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 import { BASE_URL } from '../src/config';
-
+const screenWidth = Dimensions.get('window').width;
+const ITEM_WIDTH = screenWidth / 5; // mỗi item chiếm 1 phần nhỏ màn hình
+const CIRCLE_SIZE = ITEM_WIDTH * 0.6;
+const ICON_SIZE = CIRCLE_SIZE * 0.6;
+const screenHeight = Dimensions.get('window').height;
 export type Product = {
   _id: string;
   name: string;
@@ -29,7 +33,6 @@ export type Product = {
 export default function HomeScreen() {
   const router = useRouter();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -118,8 +121,9 @@ export default function HomeScreen() {
 
       <View style={styles.greetingSection}>
         <Text style={styles.greeting}>
-          Xin chào <Text style={{ fontWeight: 'bold' }}>!</Text>
+          Xin chào <Text style={{ fontWeight: 'bold' }}>Bạn</Text>
         </Text>
+
         <Text style={styles.subGreeting}>
           Welcome to ManzonePoly – Where Men’s Fashion Begins
         </Text>
@@ -133,30 +137,34 @@ export default function HomeScreen() {
       <View style={styles.categoryContainer}>
         <View style={styles.catefory2}>
 
-
           <FlatList
-          data={categories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.categoryItem}
-              onPress={() => handleCategoryPress(item.id)}
-            >
-              <View style={styles.categoryCircle}>
-                <Image source={item.image} style={styles.categoryIcon} />
-              </View>
-              <Text style={styles.categoryLabel}>{item.title}</Text>
-            </TouchableOpacity>
-          )}
-        />
+            data={categories}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id.toString()}
+            // Bỏ paddingHorizontal, dùng Header/Footer chuẩn hơn
+            contentContainerStyle={{}}
+            ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+            ListHeaderComponent={() => <View style={{ width: 16 }} />}
+            ListFooterComponent={() => <View style={{ width: 16 }} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.categoryItem}
+                onPress={() => handleCategoryPress(item.id)}
+              >
+                <View style={styles.categoryCircle}>
+                  <Image source={item.image} style={styles.categoryIcon} />
+                </View>
+                <Text style={styles.categoryLabel}>{item.title}</Text>
+              </TouchableOpacity>
+            )}
+          />
+
         </View>
-        <View style={{ paddingHorizontal: 10, marginTop: 0, marginBottom: 10 }}>
+        <View style={{ paddingHorizontal: 10, marginTop: 0, marginBottom: 5 }}>
           <Carousel
             width={screenWidth - 20}
-            height={150}
+            height={120}
             data={banners}
             autoPlay
             scrollAnimationDuration={1000}
@@ -170,28 +178,23 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.featuredSection}>
-          <Text style={styles.featuredTitle}>Sản phẩm nổi bật</Text>
+          <View style={styles.featuredTitleWrapper}>
+            <Text style={styles.featuredTitle}>Sản phẩm nổi bật</Text>
+          </View>
+          <View style={{ height: screenHeight * 0.5, paddingLeft: 10, paddingRight: 10, paddingBottom: 40 }}>
+            <FlatList
+              data={featuredProducts}
+              keyExtractor={(item) => item._id}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              renderItem={renderProduct}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={true}
+              style={{ height: 599 }}
 
-          <FlatList
-            data={featuredProducts}
-            keyExtractor={(item) => item._id}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            renderItem={renderProduct}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={true}
-            style={{
-              height: 400,
-              backgroundColor: '#ffd6d2',
-              padding: 10,
-              marginBottom:40,
-              paddingBottom: 10,
-
-              
-
-            }}
-          />
+            /></View>
         </View>
+
       </View>
     </View>
   );
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   subGreeting: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#fff',
     marginBottom: 5,
   },
@@ -221,12 +224,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 3,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 10,
   },
   imageCircle: {
     width: 60,
@@ -274,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
-    marginBottom: 20,
+    marginBottom: 15,
     width: '48%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -333,58 +336,61 @@ const styles = StyleSheet.create({
   },
 
   featuredSection: {
-
     backgroundColor: '#FFD6D2',
-    paddingTop: 0,
-    paddingBottom: 0,
+    paddingBottom: 24,
     paddingHorizontal: 0,
     borderTopRightRadius: 30,
     borderTopLeftRadius: 30,
 
+  }
+  ,
 
-
+  featuredTitleWrapper: {
+    backgroundColor: '#3366FF',
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 3,
+    marginBottom: 5,
+    borderRadius: 16,
   },
 
   featuredTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#fff',
-    alignSelf: 'center',
-    backgroundColor: '#3366FF',
-    paddingVertical: 6,
-    paddingHorizontal: 137,
-    borderRadius: 15,
-    marginBottom: 0,
-
-
+    paddingHorizontal: 24,
+    paddingVertical: 2,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 
 
   categoryItem: {
     alignItems: 'center',
-    marginHorizontal: 22,
+    justifyContent: 'center',
+    width: ITEM_WIDTH,
   },
   categoryCircle: {
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#fff',
     borderRadius: 999,
-    width: 50,
-    height: 50,
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 2,
+    elevation: 2, // hiệu ứng đổ bóng
   },
   categoryIcon: {
-    width: 30,
-    height: 30,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
     resizeMode: 'contain',
   },
   categoryLabel: {
     fontSize: 12,
     textAlign: 'center',
     color: '#333',
-    maxWidth: 80,
     fontWeight: 'bold',
-
+    maxWidth: ITEM_WIDTH,
   },
 
 

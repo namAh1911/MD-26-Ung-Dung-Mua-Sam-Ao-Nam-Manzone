@@ -9,11 +9,13 @@ import {
     TouchableOpacity,
     Dimensions,
     Alert,
+    Modal,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { BASE_URL } from '../src/config';
+import { useCart } from '../src/CartContext';
 
 type Product = {
     _id: string;
@@ -24,6 +26,12 @@ type Product = {
     price: number;
     brand: string;
     category: string;
+    quantity: number;
+    variations: {
+        color: string;
+        size: string;
+        quantity: number;
+    }[];
 };
 
 type ProductType = {
@@ -33,9 +41,11 @@ type ProductType = {
     image: string;
     category: string;
     description?: string;
+
 };
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('screen').height;
 
 export default function ProductDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,7 +55,38 @@ export default function ProductDetail() {
     const [relatedProducts, setRelatedProducts] = useState<ProductType[]>([]);
     const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
-    
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [quantity, setQuantity] = useState(1);
+    const uniqueColors = product?.variations ? [...new Set(product.variations.map(v => v.color))] : [];
+    const uniqueSizes = product?.variations ? [...new Set(product.variations.map(v => v.size))] : [];
+    const { addToCart } = useCart();
+
+
+    const handleAddToCart = () => {
+        if (!selectedColor || !selectedSize) {
+            Alert.alert('Vui lòng chọn đầy đủ màu sắc và kích cỡ');
+            return;
+        }
+        if (!product) return;
+
+        const item = {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            color: selectedColor,
+            size: selectedSize,
+            quantity: quantity,
+        };
+
+        addToCart(item); // Sử dụng context
+        Alert.alert('✅ Đã thêm vào giỏ hàng');
+        setModalVisible(false);
+        router.push('/(tabs)/Cart'); // Đúng path nếu Cart nằm trong (tabs)
+    };
+
 
     // Move fetchProduct before useEffect
     const fetchProduct = async () => {
@@ -87,11 +128,94 @@ export default function ProductDetail() {
         }
     }, [product]);
 
-    if (!product) return null;
+    if (!product) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Đang tải sản phẩm...</Text>
+            </View>
+        );
+    }
+
     const images = [product.image, ...(product.images || [])];
 
     return (
         <View style={styles.container}>
+
+            <View style={styles.container}>
+
+
+                {/* Modal */}
+                <Modal
+                    transparent={true}
+                    visible={modalVisible}
+                    animationType="fade"
+                    onRequestClose={() => setModalVisible(false)} // Android back button
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContentWrapper}>
+                            <ScrollView
+                                style={{ maxHeight: screenHeight * 0.75 }}
+                                contentContainerStyle={{ padding: 20 }}
+                                showsVerticalScrollIndicator={false}
+                            >
+                                <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeButton}>
+                                    <Text style={{ fontSize: 20 }}>✕</Text>
+                                </TouchableOpacity>
+
+                                <Text style={styles.stockText}>Kho: {product.quantity}</Text>
+                                <Text style={styles.priceText}>{product.price.toLocaleString()} ₫</Text>
+
+                                <Text style={styles.sectionTitle}>Màu sắc</Text>
+                                <View style={styles.optionContainer}>
+                                    {uniqueColors.map(color => (
+                                        <TouchableOpacity
+                                            key={color}
+                                            style={[
+                                                styles.optionButton,
+                                                selectedColor === color && styles.selectedOption,
+                                            ]}
+                                            onPress={() => setSelectedColor(color)}
+                                        >
+                                            <Text style={styles.optionText}>{color}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                <Text style={styles.sectionTitle}>Kích cỡ</Text>
+                                <View style={styles.optionContainer}>
+                                    {uniqueSizes.map(size => (
+                                        <TouchableOpacity
+                                            key={size}
+                                            style={[
+                                                styles.optionButton,
+                                                selectedSize === size && styles.selectedOption,
+                                            ]}
+                                            onPress={() => setSelectedSize(size)}
+                                        >
+                                            <Text style={styles.optionText}>{size}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                <View style={styles.quantityContainer}>
+                                    <TouchableOpacity onPress={() => setQuantity(Math.max(1, quantity - 1))}>
+                                        <Text style={styles.quantityButton}>−</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.quantityText}>{quantity}</Text>
+                                    <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
+                                        <Text style={styles.quantityButton}>+</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+                                    <Text style={styles.addToCartText}>Thêm vào giỏ hàng</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -206,7 +330,11 @@ export default function ProductDetail() {
             </ScrollView>
 
             <View style={styles.bottomBar}>
-                <Ionicons name="cart-outline" size={26} style={{ marginRight: 10 }} />
+
+                <TouchableOpacity style={{ padding: 10 }} onPress={() => setModalVisible(true)} >
+                    <Ionicons name="cart-outline" size={26} />
+                </TouchableOpacity>
+
                 <TouchableOpacity
                     style={styles.buyButton}
                     onPress={() => Alert.alert('', 'Chức năng mua chưa được triển khai')}
@@ -222,7 +350,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     header: {
         flexDirection: 'row',
-        padding: 22,
+        padding: '5%',
+        paddingTop: '8%',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#eee',
@@ -273,7 +402,8 @@ const styles = StyleSheet.create({
     bottomBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+        paddingBottom: '9%',
+        margin: 10,
         borderTopWidth: 1,
         borderColor: '#ddd',
     },
@@ -307,4 +437,86 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
     },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'flex-end',
+
+    },
+    modalContentWrapper: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        overflow: 'hidden',
+    },
+    closeButton: {
+        alignSelf: 'flex-end',
+    },
+    stockText: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 6,
+    },
+    priceText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#e53935',
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginVertical: 10,
+    },
+    optionContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginBottom: 12,
+    },
+    optionButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#999',
+    },
+    selectedOption: {
+        backgroundColor: '#e8e7e7ff',
+        borderColor: '#000',
+    },
+    optionText: {
+        color: '#000',
+    },
+    quantityContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 20,
+        justifyContent: 'center',
+        marginVertical: 14,
+    },
+    quantityButton: {
+        fontSize: 22,
+        paddingHorizontal: 14,
+        paddingVertical: 4,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+    },
+    quantityText: {
+        fontSize: 18,
+    },
+    addToCartButton: {
+        backgroundColor: '#e61c58ff',
+        paddingVertical: 14,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    addToCartText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+
 });

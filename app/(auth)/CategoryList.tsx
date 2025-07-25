@@ -61,15 +61,18 @@ export default function CategoryList() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerIconLeft}>
                     <Ionicons name="arrow-back" color="#fff" size={24} />
                 </TouchableOpacity>
+
                 <Text style={styles.headerTitle}>Danh mục Sản Phẩm</Text>
-                <View style={{ flexDirection: 'row' }}>
+
+                <View style={styles.headerIconsRight}>
                     <Ionicons name="search" size={22} color="#fff" style={{ marginRight: 10 }} />
                     <Ionicons name="cart-outline" color="#fff" size={22} />
                 </View>
             </View>
+
             {/* Danh mục con */}
             <View>
                 <FlatList
@@ -158,15 +161,35 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        padding: 22,
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: '8%',
         backgroundColor: '#f66060ff',
         borderBottomRightRadius: 30,
         borderBottomLeftRadius: 30,
-
     },
-    headerTitle: { fontSize: 16, fontWeight: '600',color:"#fff" },
+
+    headerIconLeft: {
+        width: 40,
+        alignItems: 'flex-start',
+    },
+
+    headerIconsRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: 60,
+        justifyContent: 'flex-end',
+    },
+
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: "#fff",
+        textAlign: 'center',
+        flex: 1,
+    },
+
     subCategoryList: {
         paddingVertical: 10,
         paddingHorizontal: 12,

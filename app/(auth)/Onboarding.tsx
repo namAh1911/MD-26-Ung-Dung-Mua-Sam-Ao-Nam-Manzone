@@ -52,9 +52,11 @@ export default function Onboarding() {
                         <Ionicons name="chevron-back" size={24} />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={handleSkip}>
-                    <Text style={{ color: '#999', fontWeight: 'bold', padding: 15, marginLeft: 300 }}>Bỏ qua</Text>
+                <View></View>
+                <TouchableOpacity onPress={handleSkip} style={{ alignSelf: 'flex-end', padding: 15, marginRight: 10 }}>
+                    <Text style={{ color: '#999', fontWeight: 'bold' }}>Bỏ qua</Text>
                 </TouchableOpacity>
+
             </View>
 
             <FlatList

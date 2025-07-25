@@ -171,11 +171,11 @@ const AccountSection = ({
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', },
   header: {
     flexDirection: 'row',
     backgroundColor: '#f66',
-    padding: 30,
+    padding: '6%',
     alignItems: 'center',
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginRight: 15,
+    marginRight: '2%',
   },
   name: {
     color: '#fff',
@@ -201,10 +201,10 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
   },
-  section: { padding: 20 },
+  section: { padding: '4%' },
   sectionTitle: {
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: '1%',
     color: '#0039e6',
   },
   orderRow: {
@@ -214,19 +214,19 @@ const styles = StyleSheet.create({
   box: {
     backgroundColor: '#f9f9f9',
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: '2%',
+    paddingHorizontal:'2%',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: '3%',
     borderBottomColor: '#eee',
     borderBottomWidth: 1,
   },
   rowText: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: '2%',
     color: '#333',
   },
   modalOverlay: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     width: '80%',
     backgroundColor: '#fff',
     borderRadius: 10,
-    padding: 20,
+    padding: '4%',
     elevation: 5,
     alignItems: 'center',
   },
