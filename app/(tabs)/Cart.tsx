@@ -7,22 +7,26 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
+
 } from 'react-native';
 import { useCart } from '../src/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import Checkbox from 'expo-checkbox';
+import { useRouter } from 'expo-router';
 
 export default function Cart() {
   const { cart, setCart } = useCart();
   const [selectedItems, setSelectedItems] = useState<boolean[]>(cart.map(() => false));
   const [selectAll, setSelectAll] = useState(false);
-
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const toggleSelectAll = () => {
     const newState = !selectAll;
     setSelectAll(newState);
     setSelectedItems(cart.map(() => newState));
   };
-
+  const hasSelected = selectedItems.some(selected => selected);
   const toggleSelectItem = (index: number) => {
     const updated = [...selectedItems];
     updated[index] = !updated[index];
@@ -101,6 +105,29 @@ export default function Cart() {
       );
     }
   };
+  const handleCheckout = () => {
+    const selected = cart.filter((_, index) => selectedItems[index]);
+
+    if (selected.length === 0) {
+      Alert.alert("Thông báo", "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Điều hướng, rồi tắt loading sau một khoảng delay nhỏ (an toàn UX)
+    router.push({
+      pathname: '/(auth)/PaymentScreen',
+      params: {
+        items: JSON.stringify(selected),
+      },
+    });
+
+    // Tắt loading sau khi điều hướng (đợi 300ms để tránh nhấp nháy)
+    setTimeout(() => {
+      setLoading(false);
+    }, 300);
+  };
 
 
   const total = cart.reduce((sum, item, index) => {
@@ -111,7 +138,9 @@ export default function Cart() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24}  />
+        </TouchableOpacity>
         <Text style={styles.title}>Giỏ Hàng</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -119,56 +148,69 @@ export default function Cart() {
       {/* Select All Bar */}
       <View style={styles.selectBar}>
         <Checkbox value={selectAll} onValueChange={toggleSelectAll} />
-        <Text style={{ marginLeft: 8 }}>Chọn Tất Cả ({cart.length}/{cart.length})</Text>
+        <Text style={{ marginLeft: 8 }}>Chọn Tất Cả ({selectedItems.filter(x => x).length}/{cart.length})</Text>
         <View style={{ flex: 1 }} />
         <TouchableOpacity onPress={deleteAll}>
-          <Text style={styles.deleteText}>Xóa Tất Cả</Text>
+          <Text disabled={!hasSelected} style={styles.deleteText}>Xóa Tất Cả</Text>
         </TouchableOpacity>
         <Text style={styles.separator}> | </Text>
         <TouchableOpacity onPress={deleteSelected}>
-          <Text style={styles.deleteText}>Xóa Mục Đã Chọn</Text>
+          <Text disabled={!hasSelected} style={styles.deleteText}>Xóa Mục Đã Chọn</Text>
         </TouchableOpacity>
       </View>
 
       {/* Cart Items */}
-      <FlatList
-        data={cart}
-        keyExtractor={(item, index) => item.productId + index}
-        renderItem={({ item, index }) => (
-          <View style={styles.item}>
-            <Checkbox
-              value={selectedItems[index]}
-              onValueChange={() => toggleSelectItem(index)}
-              style={{ marginRight: 10 }}
-            />
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.itemInfo}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text>{`${item.color} | Size: ${item.size}`}</Text>
-              <Text style={styles.price}>{item.price.toLocaleString()}₫</Text>
+      {cart.length === 0 ? (
+        <View style={{ padding: 24, alignItems: 'center' }}>
+          <Text style={{ fontSize: 16, color: '#888' }}>Giỏ hàng của bạn đang trống.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={cart}
+          keyExtractor={(item, index) => item.productId + index}
+          renderItem={({ item, index }) => (
+            <View style={styles.item}>
+              <Checkbox
+                value={selectedItems[index]}
+                onValueChange={() => toggleSelectItem(index)}
+                style={{ marginRight: 10 }}
+              />
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.itemInfo}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text>{`${item.color} | Size: ${item.size}`}</Text>
+                <Text style={styles.price}>{item.price.toLocaleString()}₫</Text>
 
-              {/* Quantity */}
-              <View style={styles.quantityContainer}>
-                <TouchableOpacity style={styles.qButton} onPress={() => decreaseQuantity(index)}>
-                  <Text>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.quantity}>{item.quantity}</Text>
-                <TouchableOpacity style={styles.qButton} onPress={() => increaseQuantity(index)}>
-                  <Text>+</Text>
-                </TouchableOpacity>
+                {/* Quantity */}
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity style={styles.qButton} onPress={() => decreaseQuantity(index)}>
+                    <Text>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.quantity}>{item.quantity}</Text>
+                  <TouchableOpacity style={styles.qButton} onPress={() => increaseQuantity(index)}>
+                    <Text>+</Text>
+                  </TouchableOpacity>
+                </View>
+
+
               </View>
-
-
             </View>
-          </View>
-        )}
-      />
+          )}
+        />)}
 
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.totalText}>Tổng: {total.toLocaleString()}₫</Text>
-        <TouchableOpacity style={styles.checkoutButton}>
-          <Text style={styles.checkoutText}>Thanh Toán {total.toLocaleString()}₫</Text>
+        <TouchableOpacity
+          style={[styles.checkoutButton, loading && { opacity: 0.5 }]}
+          onPress={handleCheckout}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.checkoutText}>Thanh toán</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

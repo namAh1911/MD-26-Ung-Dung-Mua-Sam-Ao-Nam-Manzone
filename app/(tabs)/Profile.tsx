@@ -24,6 +24,9 @@ export default function Profile() {
     if (label === 'Đổi mật khẩu') {
       router.push('/(auth)/ChangePasswordScreen');
     }
+    if (label === 'Quản lý sổ địa chỉ') {
+      router.push('/(auth)/AddressListScreen');
+    }
   };
 
 
@@ -177,8 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f66',
     padding: '6%',
     alignItems: 'center',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   avatar: {
     width: 60,
