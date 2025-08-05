@@ -4,15 +4,14 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    FlatList,
     Image,
     ScrollView,
 } from 'react-native';
-import { useLocalSearchParams, useRouter, } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { BASE_URL } from '../src/config';
-import { useAuth } from '../src/AuthContext'; // Đường dẫn tới AuthContext của bạn
+import { useAuth } from '../src/AuthContext';
 
 interface Address {
     _id: string;
@@ -28,7 +27,8 @@ interface Address {
 
 export default function PaymentScreen() {
     const router = useRouter();
-    const { token } = useAuth();
+    const { token, user } = useAuth();
+
     const {
         full_name,
         phone_number,
@@ -37,36 +37,41 @@ export default function PaymentScreen() {
         district,
         province,
         items,
+        paymentMethod: paymentMethodParam,
     } = useLocalSearchParams<{
-        full_name: string;
-        phone_number: string;
-        street: string;
-        ward: string;
-        district: string;
-        province: string;
+        full_name?: string;
+        phone_number?: string;
+        street?: string;
+        ward?: string;
+        district?: string;
+        province?: string;
         items: string;
+        paymentMethod?: string;
     }>();
 
     const selectedItems = JSON.parse(items || '[]');
-    const [shippingFee, setShippingFee] = useState(12500);
-    const [paymentMethod, setPaymentMethod] = useState('cash'); // chỉ có 1 tùy chọn hiện tại
+    const [shippingFee] = useState(12500);
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'momo'>('cash');
     const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
 
+    useEffect(() => {
+        if (paymentMethodParam && ['cash', 'momo'].includes(paymentMethodParam)) {
+            setPaymentMethod(paymentMethodParam as 'cash' | 'momo');
+        }
+    }, [paymentMethodParam]);
 
     useEffect(() => {
         const fetchDefaultAddress = async () => {
             try {
                 const res = await axios.get(`${BASE_URL}/api/addresses/default`, {
-                    headers: { Authorization: `Bearer ${token}` }, // nếu cần
+                    headers: { Authorization: `Bearer ${token}` },
                 });
                 setDefaultAddress(res.data);
             } catch (err) {
                 console.error('Không lấy được địa chỉ mặc định', err);
             }
         };
-        if (token) {
-            fetchDefaultAddress();
-        }
+        if (token) fetchDefaultAddress();
     }, [token]);
 
     const productTotal = selectedItems.reduce(
@@ -78,15 +83,72 @@ export default function PaymentScreen() {
     const getDeliveryDate = () => {
         const today = new Date();
         today.setDate(today.getDate() + 3);
-
-        const day = today.getDate().toString().padStart(2, '0');
-        const month = (today.getMonth() + 1).toString().padStart(2, '0');
-        const year = today.getFullYear();
-
-
-
-        return `${day}-${month}-${year}`;
+        return `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1)
+            .toString()
+            .padStart(2, '0')}-${today.getFullYear()}`;
     };
+
+    // const handleMomoPayment = async () => {
+
+    // };
+
+    const handleCashPayment = async () => {
+        try {
+            const orderItems = selectedItems.map((item: any) => {
+                if (!item.productId || !item.color || !item.size || !item.quantity || !item.price) {
+                    console.warn('❌ Lỗi dữ liệu item:', item);
+                }
+
+                return {
+                    product_id: item.productId, 
+                    name: item.name ?? '',
+                    image: item.image ?? '',
+                    color: item.color ?? '',
+                    size: item.size ?? '',
+                    quantity: item.quantity ?? 1,
+                    price: item.price ?? 0,
+                };
+            });
+
+            console.log("✅ orderItems gửi lên:", orderItems);
+            const res = await axios.post(
+
+                `${BASE_URL}/api/orders/cash-order`,
+                {
+                    items: orderItems,
+                    address: defaultAddress ?? {
+                        full_name,
+                        phone_number,
+                        street,
+                        ward,
+                        district,
+                        province,
+                    },
+                    shipping_fee: shippingFee,
+                    total_amount: total,
+                    payment_method: 'cash',
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            router.push({
+                pathname: "/(auth)/OrderSuccessScreen",
+                params: { orderId: res.data._id },
+            });
+        } catch (error) {
+            // console.error("Đặt hàng thất bại:", error?.response?.data || error.message);
+            alert("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        }
+    };
+
+
+
+
+
 
     return (
         <View style={styles.container}>
@@ -103,7 +165,6 @@ export default function PaymentScreen() {
                 {/* Địa chỉ giao hàng */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Địa chỉ giao hàng</Text>
-
                     {defaultAddress ? (
                         <>
                             <Text style={styles.text}>
@@ -115,26 +176,20 @@ export default function PaymentScreen() {
                         </>
                     ) : (
                         <>
-                            <Text style={styles.text}>
-                                {full_name} - {phone_number}
-                            </Text>
+                            <Text style={styles.text}>{full_name} - {phone_number}</Text>
                             <Text style={styles.text}>
                                 {street}, {ward}, {district}, {province}, VN
                             </Text>
                         </>
                     )}
-
                     <TouchableOpacity onPress={() => {
                         router.push({
                             pathname: '/(auth)/AddressListScreen',
-                            params: {
-                                items: JSON.stringify(selectedItems),
-                            },
+                            params: { items: JSON.stringify(selectedItems) },
                         });
                     }}>
                         <Text style={styles.linkText}>Thêm địa chỉ</Text>
                     </TouchableOpacity>
-
                 </View>
 
                 {/* Danh sách sản phẩm */}
@@ -171,13 +226,37 @@ export default function PaymentScreen() {
                 {/* Phương thức thanh toán */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Phương thức thanh toán</Text>
-                    <View style={styles.paymentMethod}>
+                    <TouchableOpacity
+                        style={styles.paymentMethod}
+                        onPress={() =>
+                            router.push({
+                                pathname: '/(auth)/SelectPaymentMethodScreen',
+                                params: {
+                                    returnTo: '/(auth)/PaymentScreen',
+                                    paymentMethod,
+                                    full_name,
+                                    phone_number,
+                                    street,
+                                    ward,
+                                    district,
+                                    province,
+                                    items: JSON.stringify(selectedItems),
+                                },
+                            })
+                        }
+                    >
                         <Text>Chọn phương thức thanh toán</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Ionicons name="cash" size={18} />
-                            <Text style={{ marginLeft: 6 }}>Tiền mặt</Text>
+                            <Ionicons
+                                name={paymentMethod === 'momo' ? 'logo-electron' : 'cash'}
+                                size={18}
+                                color={paymentMethod === 'momo' ? '#a000a0' : '#333'}
+                            />
+                            <Text style={{ marginLeft: 6 }}>
+                                {paymentMethod === 'momo' ? 'Ví MoMo' : 'Tiền mặt'}
+                            </Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Tổng kết */}
@@ -201,9 +280,11 @@ export default function PaymentScreen() {
                     <Text style={styles.totalBottom}>{total.toLocaleString()}₫</Text>
                 </View>
 
-                <TouchableOpacity style={styles.payButton}>
+                <TouchableOpacity style={styles.payButton} onPress={handleCashPayment}>
                     <Text style={styles.payText}>Thanh toán</Text>
                 </TouchableOpacity>
+
+
             </View>
         </View>
     );

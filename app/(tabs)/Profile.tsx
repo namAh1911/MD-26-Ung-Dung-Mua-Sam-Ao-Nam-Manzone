@@ -27,6 +27,9 @@ export default function Profile() {
     if (label === 'Quản lý sổ địa chỉ') {
       router.push('/(auth)/AddressListScreen');
     }
+    if (label === 'Đơn hàng của tôi') {
+      router.push('/(auth)/MyOrdersScreen');
+    }
   };
 
 
@@ -79,7 +82,7 @@ export default function Profile() {
         </View>
 
 
-        {/* Đơn hàng */}
+        {/* Đơn hàng
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Đơn của tôi</Text>
           <View style={styles.orderRow}>
@@ -88,16 +91,16 @@ export default function Profile() {
             <OrderStatus iconLib="AntDesign" icon="checkcircleo" text="Đã giao" />
             <OrderStatus iconLib="AntDesign" icon="closecircleo" text="Đã huỷ" />
           </View>
-        </View>
+        </View> */}
 
         {/* Tài khoản */}
         <AccountSection
           title="Tài khoản"
           items={[
             { icon: 'person', label: 'Thông tin cá nhân' },
+            { icon: 'document-text', label: 'Đơn hàng của tôi' },
             { icon: 'lock-closed', label: 'Đổi mật khẩu' },
             { icon: 'location', label: 'Quản lý sổ địa chỉ' },
-            { icon: 'language', label: 'Ngôn ngữ' },
           ]}
           onPressItem={handleNavigate}
         />

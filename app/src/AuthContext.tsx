@@ -63,10 +63,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     token: string;
     user: any;
   }) => {
+    const newUser = {
+      id: user._id || user.userId || user.id,
+      ...user,
+    };
+
     await setToken(token);
-    await AsyncStorage.setItem('user', JSON.stringify(user));
-    setUser(user);
+    await AsyncStorage.setItem('user', JSON.stringify(newUser));
+    setUser(newUser);
   };
+
 
   const refreshUser = async (overrideToken?: string) => {
     try {
@@ -79,7 +85,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         },
       });
 
-      const newUser = res.data.user || res.data;
+      const rawUser = res.data.user || res.data;
+
+      const newUser = {
+        id: rawUser._id || rawUser.userId || rawUser.id, // <-- dùng id
+        ...rawUser,
+      };
+
+
 
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
