@@ -74,9 +74,17 @@ export default function Cart() {
   };
   const increaseQuantity = (index: number) => {
     const updatedCart = [...cart];
+    const currentItem = updatedCart[index];
+
+    if (currentItem.quantity >= 3) {
+      Alert.alert('Thông báo', 'Bạn chỉ có thể mua tối đa 3 sản phẩm này.');
+      return;
+    }
+
     updatedCart[index].quantity += 1;
     setCart(updatedCart);
   };
+
 
 
   const decreaseQuantity = (index: number) => {
@@ -139,7 +147,7 @@ export default function Cart() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24}  />
+          <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Giỏ Hàng</Text>
         <View style={{ width: 24 }} />

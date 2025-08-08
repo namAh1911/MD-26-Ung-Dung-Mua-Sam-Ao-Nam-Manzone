@@ -56,20 +56,66 @@ export default function ProductDetail() {
     const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
+    const [actionMode, setActionMode] = useState<'addToCart' | 'buyNow' | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
+    const [availableSizes, setAvailableSizes] = useState<string[]>([]);
     const uniqueColors = product?.variations ? [...new Set(product.variations.map(v => v.color))] : [];
     const uniqueSizes = product?.variations ? [...new Set(product.variations.map(v => v.size))] : [];
-    const { addToCart } = useCart();
+    const { cart, addToCart } = useCart();
 
+
+    useEffect(() => {
+        if (selectedColor && product) {
+            const sizes = product.variations
+                .filter(v => v.color === selectedColor && v.quantity > 0)
+                .map(v => v.size);
+            setAvailableSizes(sizes);
+            if (!sizes.includes(selectedSize || '')) {
+                setSelectedSize(null);
+            }
+        }
+    }, [selectedColor]);
+
+    const currentVariant = product?.variations.find(
+        v => v.color === selectedColor && v.size === selectedSize
+    );
+    const stock = currentVariant?.quantity || 0;
 
     const handleAddToCart = () => {
         if (!selectedColor || !selectedSize) {
             Alert.alert('Vui lòng chọn đầy đủ màu sắc và kích cỡ');
             return;
         }
+
         if (!product) return;
+
+        if (stock === 0) {
+            Alert.alert('Sản phẩm này đã hết hàng');
+            return;
+        }
+
+        const existingQuantity = cart.reduce((total, item) => {
+            if (
+                item.productId === product._id &&
+                item.color === selectedColor &&
+                item.size === selectedSize
+            ) {
+                return total + item.quantity;
+            }
+            return total;
+        }, 0);
+
+        if (existingQuantity + quantity > stock) {
+            Alert.alert('Thông báo', `Tồn kho chỉ còn ${stock} sản phẩm cho lựa chọn này.`);
+            return;
+        }
+        if (existingQuantity + quantity > 3) {
+            Alert.alert('Thông báo', 'Bạn chỉ có thể mua tối đa 3 sản phẩm cho lựa chọn này.');
+            return;
+        }
+
 
         const item = {
             productId: product._id,
@@ -81,12 +127,49 @@ export default function ProductDetail() {
             quantity: quantity,
         };
 
-        addToCart(item); // Sử dụng context
+        addToCart(item);
         Alert.alert('✅ Đã thêm vào giỏ hàng');
         setModalVisible(false);
-        router.push('/(tabs)/Cart'); // Đúng path nếu Cart nằm trong (tabs)
+        router.push('/(tabs)/Cart');
     };
 
+    const handleBuyNow = () => {
+        if (!selectedColor || !selectedSize) {
+            Alert.alert('Vui lòng chọn đầy đủ màu sắc và kích cỡ');
+            return;
+        }
+
+        if (!product) return;
+
+        if (stock === 0) {
+            Alert.alert('Sản phẩm này đã hết hàng');
+            return;
+        }
+
+        if (quantity > stock) {
+            Alert.alert('Thông báo', `Tồn kho chỉ còn ${stock} sản phẩm cho lựa chọn này.`);
+            return;
+        }
+
+        const item = {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            color: selectedColor,
+            size: selectedSize,
+            quantity: quantity,
+        };
+
+        setModalVisible(false);
+
+        router.push({
+            pathname: '/(auth)/PaymentScreen',
+            params: {
+                items: JSON.stringify([item]),
+            },
+        });
+    };
 
     // Move fetchProduct before useEffect
     const fetchProduct = async () => {
@@ -149,7 +232,7 @@ export default function ProductDetail() {
                     transparent={true}
                     visible={modalVisible}
                     animationType="fade"
-                    onRequestClose={() => setModalVisible(false)} // Android back button
+                    onRequestClose={() => setModalVisible(false)}
                 >
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContentWrapper}>
@@ -162,12 +245,14 @@ export default function ProductDetail() {
                                     <Text style={{ fontSize: 20 }}>✕</Text>
                                 </TouchableOpacity>
 
-                                <Text style={styles.stockText}>Kho: {product.quantity}</Text>
-                                <Text style={styles.priceText}>{product.price.toLocaleString()} ₫</Text>
+                                <Text style={styles.stockText}>
+                                    {selectedColor && selectedSize ? `Kho còn: ${stock}` : `Kho tổng: ${product?.quantity}`}
+                                </Text>
+                                <Text style={styles.priceText}>{product?.price.toLocaleString()} ₫</Text>
 
                                 <Text style={styles.sectionTitle}>Màu sắc</Text>
                                 <View style={styles.optionContainer}>
-                                    {uniqueColors.map(color => (
+                                    {[...new Set(product?.variations.map(v => v.color) || [])].map(color => (
                                         <TouchableOpacity
                                             key={color}
                                             style={[
@@ -183,7 +268,7 @@ export default function ProductDetail() {
 
                                 <Text style={styles.sectionTitle}>Kích cỡ</Text>
                                 <View style={styles.optionContainer}>
-                                    {uniqueSizes.map(size => (
+                                    {availableSizes.map(size => (
                                         <TouchableOpacity
                                             key={size}
                                             style={[
@@ -207,9 +292,16 @@ export default function ProductDetail() {
                                     </TouchableOpacity>
                                 </View>
 
-                                <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-                                    <Text style={styles.addToCartText}>Thêm vào giỏ hàng</Text>
+                                <TouchableOpacity
+                                    style={[styles.addToCartButton, stock === 0 && { backgroundColor: '#ccc' }]}
+                                    onPress={actionMode === 'buyNow' ? handleBuyNow : handleAddToCart}
+                                    disabled={stock === 0}
+                                >
+                                    <Text style={styles.addToCartText}>
+                                        {stock === 0 ? 'Hết hàng' : actionMode === 'buyNow' ? 'Thanh toán ngay' : 'Thêm vào giỏ hàng'}
+                                    </Text>
                                 </TouchableOpacity>
+
                             </ScrollView>
                         </View>
                     </View>
@@ -224,7 +316,9 @@ export default function ProductDetail() {
                 <Text style={styles.headerTitle}>Chi Tiết Sản Phẩm</Text>
                 <View style={{ flexDirection: 'row' }}>
                     <Ionicons name="share-social-outline" size={22} style={{ marginRight: 10 }} />
-                    <Ionicons name="cart-outline" size={22} />
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
+                        <Ionicons name="cart-outline" size={22} />
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -331,13 +425,19 @@ export default function ProductDetail() {
 
             <View style={styles.bottomBar}>
 
-                <TouchableOpacity style={{ padding: 10 }} onPress={() => setModalVisible(true)} >
+                <TouchableOpacity style={{ padding: 10 }} onPress={() => {
+                    setModalVisible(true);
+                    setActionMode('addToCart');
+                }} >
                     <Ionicons name="cart-outline" size={26} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.buyButton}
-                    onPress={() => Alert.alert('', 'Chức năng mua chưa được triển khai')}
+                    onPress={() => {
+                        setActionMode('buyNow');
+                        setModalVisible(true);
+                    }}
                 >
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>Mua ngay</Text>
                 </TouchableOpacity>
