@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function SelectPaymentMethodScreen() {
   const router = useRouter();
-  const [selectedMethod, setSelectedMethod] = useState<'cash' | 'momo'>('cash');
+  const [selectedMethod, setSelectedMethod] = useState<'cash' | 'vnpay'>('cash');
 
  const {
   returnTo,
@@ -79,15 +79,15 @@ const handleConfirm = () => {
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedMethod('momo')}
+        onPress={() => setSelectedMethod('vnpay')}
       >
         <Ionicons
-          name={selectedMethod === 'momo' ? 'radio-button-on' : 'radio-button-off'}
+          name={selectedMethod === 'vnpay' ? 'radio-button-on' : 'radio-button-off'}
           size={20}
           color="#f33"
         />
-        <Ionicons name="logo-electron" size={20} color="#a000a0" style={styles.icon} />
-        <Text style={styles.optionText}>Ví MoMo</Text>
+        <Ionicons name="logo-card" size={20} color="#0a7cff" style={styles.icon} />
+        <Text style={styles.optionText}>VNPay</Text>
       </TouchableOpacity>
 
       {/* Nút xác nhận */}
