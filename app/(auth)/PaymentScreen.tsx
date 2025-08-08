@@ -51,12 +51,12 @@ export default function PaymentScreen() {
 
     const selectedItems = JSON.parse(items || '[]');
     const [shippingFee] = useState(12500);
-    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'momo'>('cash');
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'vnpay'>('cash');
     const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
 
     useEffect(() => {
-        if (paymentMethodParam && ['cash', 'momo'].includes(paymentMethodParam)) {
-            setPaymentMethod(paymentMethodParam as 'cash' | 'momo');
+        if (paymentMethodParam && ['cash', 'vnpay'].includes(paymentMethodParam)) {
+            setPaymentMethod(paymentMethodParam as 'cash' | 'vnpay');
         }
     }, [paymentMethodParam]);
 
@@ -88,9 +88,147 @@ export default function PaymentScreen() {
             .padStart(2, '0')}-${today.getFullYear()}`;
     };
 
-    // const handleMomoPayment = async () => {
+    const handleVNPayPayment = async () => {
+        try {
+            console.log('🚀 Bắt đầu thanh toán VNPay...');
+            console.log('📦 Dữ liệu items:', selectedItems);
+            console.log('🏠 Địa chỉ:', defaultAddress);
+            console.log('💰 Tổng tiền:', total);
+            console.log('🔑 Token:', token ? 'Có token' : 'Không có token');
 
-    // };
+            const orderItems = selectedItems.map((item: any) => ({
+                product_id: item.productId,
+                name: item.name ?? '',
+                image: item.image ?? '',
+                color: item.color ?? '',
+                size: item.size ?? '',
+                quantity: item.quantity ?? 1,
+                price: item.price ?? 0,
+            }));
+
+            console.log('📋 Order items đã format:', orderItems);
+
+            const orderData = {
+                items: orderItems,
+                address: defaultAddress ?? {
+                    full_name,
+                    phone_number,
+                    street,
+                    ward,
+                    district,
+                    province,
+                },
+                shipping_fee: shippingFee,
+                total_amount: total,
+                payment_method: 'vnpay',
+            };
+
+            console.log('📤 Gửi request tạo order VNPay:', orderData);
+            console.log('🌐 URL API:', `${BASE_URL}/api/orders/vnpay-order`);
+
+            const orderRes = await axios.post(
+                `${BASE_URL}/api/orders/vnpay-order`,
+                orderData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log('✅ Tạo order thành công:', orderRes.data);
+            const order = orderRes.data;
+
+            console.log('🔗 Bắt đầu tạo payment URL VNPay...');
+            const paymentData = {
+                order_id: order._id,
+                total: order.total_amount,
+                user_id: order.user_id,
+                orderInfo: `Thanh toan don hang ${order._id}`,
+                ipAddr: '',
+            };
+
+            console.log('📤 Gửi request tạo payment URL:', paymentData);
+            console.log('🌐 URL API payment:', `${BASE_URL}/api/payments/create`);
+
+            const paymentRes = await axios.post(
+                `${BASE_URL}/api/payments/create`,
+                paymentData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log('✅ Tạo payment URL thành công:', paymentRes.data);
+
+            if (paymentRes.data && paymentRes.data.paymentUrl) {
+                console.log('🔗 Payment URL:', paymentRes.data.paymentUrl);
+                let paymentCompleted = false;
+                let checkCount = 0;
+                const maxChecks = 30;
+
+                const checkPaymentStatus = async () => {
+                    try {
+                        console.log(`🔍 Check payment status lần ${checkCount + 1}...`);
+                        const statusRes = await axios.get(
+                            `${BASE_URL}/api/payments/status/${order._id}`,
+                            {
+                                headers: { Authorization: `Bearer ${token}` },
+                            }
+                        );
+                        console.log('📊 Payment status response:', statusRes.data);
+                        
+                        if (statusRes.data && statusRes.data.paymentStatus === 'completed') {
+                            paymentCompleted = true;
+                            console.log('✅ Thanh toán hoàn tất!');
+                            alert('Thanh toán thành công!');
+                            router.push({ pathname: '/(auth)/OrderSuccessScreen', params: { orderId: order._id } });
+                            return;
+                        } else if (statusRes.data && statusRes.data.paymentStatus === 'failed') {
+                            paymentCompleted = true;
+                            console.log('❌ Thanh toán thất bại!');
+                            alert('Thanh toán thất bại!');
+                            return;
+                        }
+                                          } catch (error: any) {
+                          console.error('❌ Lỗi check payment status:', error);
+                          console.error('❌ Error response:', error.response?.data);
+                      }
+                };
+
+                const pollingInterval = setInterval(async () => {
+                    checkCount++;
+                    await checkPaymentStatus();
+                    if (paymentCompleted || checkCount >= maxChecks) {
+                        clearInterval(pollingInterval);
+                        if (!paymentCompleted) {
+                            console.log('⏰ Hết thời gian check payment status');
+                            alert('Không thể xác định trạng thái thanh toán. Vui lòng kiểm tra đơn hàng sau.');
+                        }
+                    }
+                }, 10000);
+
+                console.log('🌐 Mở web browser thanh toán...');
+                const result = await require('expo-web-browser').openBrowserAsync(paymentRes.data.paymentUrl);
+                console.log('🔚 Web browser result:', result);
+                
+                clearInterval(pollingInterval);
+                await checkPaymentStatus();
+            } else {
+                console.error('❌ Không nhận được payment URL:', paymentRes.data);
+                alert('Không lấy được link thanh toán VNPay!');
+            }
+        } catch (error: any) {
+            console.error('❌ Lỗi thanh toán VNPay:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error response:', error.response?.data);
+            console.error('❌ Error status:', error.response?.status);
+            console.error('❌ Error headers:', error.response?.headers);
+            alert(`Có lỗi xảy ra khi thanh toán VNPay: ${error.message}`);
+        }
+    };
 
     const handleCashPayment = async () => {
         try {
@@ -248,12 +386,12 @@ export default function PaymentScreen() {
                         <Text>Chọn phương thức thanh toán</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Ionicons
-                                name={paymentMethod === 'momo' ? 'logo-electron' : 'cash'}
+                                name={paymentMethod === 'vnpay' ? 'card' : 'cash'}
                                 size={18}
-                                color={paymentMethod === 'momo' ? '#a000a0' : '#333'}
+                                color={paymentMethod === 'vnpay' ? '#0a7cff' : '#333'}
                             />
                             <Text style={{ marginLeft: 6 }}>
-                                {paymentMethod === 'momo' ? 'Ví MoMo' : 'Tiền mặt'}
+                                {paymentMethod === 'vnpay' ? 'VNPay' : 'Tiền mặt'}
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -280,7 +418,7 @@ export default function PaymentScreen() {
                     <Text style={styles.totalBottom}>{total.toLocaleString()}₫</Text>
                 </View>
 
-                <TouchableOpacity style={styles.payButton} onPress={handleCashPayment}>
+                <TouchableOpacity style={styles.payButton} onPress={paymentMethod === 'vnpay' ? handleVNPayPayment : handleCashPayment}>
                     <Text style={styles.payText}>Thanh toán</Text>
                 </TouchableOpacity>
 
