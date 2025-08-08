@@ -93,60 +93,64 @@ export default function PaymentScreen() {
     // };
 
     const handleCashPayment = async () => {
-        try {
-            const orderItems = selectedItems.map((item: any) => {
-                if (!item.productId || !item.color || !item.size || !item.quantity || !item.price) {
-                    console.warn('❌ Lỗi dữ liệu item:', item);
-                }
+    try {
+        const orderItems = selectedItems.map((item: any) => {
+            if (!item.productId || !item.color || !item.size || !item.quantity || !item.price) {
+                console.warn('❌ Lỗi dữ liệu item:', item);
+            }
 
-                return {
-                    product_id: item.productId, 
-                    name: item.name ?? '',
-                    image: item.image ?? '',
-                    color: item.color ?? '',
-                    size: item.size ?? '',
-                    quantity: item.quantity ?? 1,
-                    price: item.price ?? 0,
-                };
-            });
+            return {
+                product_id: item.productId,
+                name: item.name ?? '',
+                image: item.image ?? '',
+                color: item.color ?? '',
+                size: item.size ?? '',
+                quantity: item.quantity ?? 1,
+                price: item.price ?? 0,
+            };
+        });
 
-            console.log("✅ orderItems gửi lên:", orderItems);
-            const res = await axios.post(
+        console.log("✅ orderItems gửi lên:", orderItems);
 
-                `${BASE_URL}/api/orders/cash-order`,
-                {
-                    items: orderItems,
-                    address: defaultAddress ?? {
-                        full_name,
-                        phone_number,
-                        street,
-                        ward,
-                        district,
-                        province,
-                    },
-                    shipping_fee: shippingFee,
-                    total_amount: total,
-                    payment_method: 'cash',
+        const res = await axios.post(
+            `${BASE_URL}/api/orders/cash-order`,
+            {
+                items: orderItems,
+                address: defaultAddress ?? {
+                    full_name,
+                    phone_number,
+                    street,
+                    ward,
+                    district,
+                    province,
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+                shipping_fee: shippingFee,
+                total_amount: total,
+                payment_method: 'cash',
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
 
-            router.push({
-                pathname: "/(auth)/OrderSuccessScreen",
-                params: { orderId: res.data._id },
-            });
-        } catch (error) {
-            // console.error("Đặt hàng thất bại:", error?.response?.data || error.message);
-            alert("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.");
+        router.push({
+            pathname: "/(auth)/OrderSuccessScreen",
+            params: { orderId: res.data._id },
+        });
+
+    } catch (error: any) {
+        console.log("❌ Lỗi đặt hàng:", error?.response?.data || error.message);
+
+        if (error?.response?.status === 400 && error.response?.data?.message) {
+            // Lỗi hết hàng hoặc thiếu biến thể
+            alert(`❗ ${error.response.data.message}`);
+        } else {
+            alert("❌ Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại sau.");
         }
-    };
-
-
-
+    }
+};
 
 
 
