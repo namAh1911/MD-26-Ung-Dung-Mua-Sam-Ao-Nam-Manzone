@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Image,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import TopBar from '../components/TopBar';
-import Carousel from 'react-native-reanimated-carousel';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
+import TopBar from '../components/TopBar';
 import { BASE_URL } from '../src/config';
 const screenWidth = Dimensions.get('window').width;
 const ITEM_WIDTH = screenWidth / 5; // mỗi item chiếm 1 phần nhỏ màn hình
@@ -33,6 +32,7 @@ export type Product = {
 export default function HomeScreen() {
   const router = useRouter();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -46,6 +46,17 @@ export default function HomeScreen() {
 
     fetchFeaturedProducts();
   }, []);
+
+   const handleSearch = async () => {
+    if (searchQuery.trim()) {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/products?name=${searchQuery}`);
+        setFeaturedProducts(res.data); // Cập nhật danh sách sản phẩm tìm được
+      } catch (error) {
+        console.error("Lỗi khi tìm kiếm sản phẩm:", error);
+      }
+    }
+  };
 
   const categories = [
     {
@@ -130,7 +141,13 @@ export default function HomeScreen() {
 
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#aaa" style={{ marginRight: 8 }} />
-          <TextInput placeholder="Tìm kiếm sản phẩm" style={styles.searchInput} />
+          <TextInput
+  placeholder="Tìm kiếm sản phẩm"
+  style={styles.searchInput}
+  value={searchQuery} // xử lý hàm tìm kiếm
+  onChangeText={setSearchQuery}
+  onSubmitEditing={handleSearch}
+/>
         </View>
       </View>
 
