@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    StyleSheet,
-    Image,
-    TouchableOpacity,
-    Dimensions,
-    ScrollView,
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Dimensions,
+    FlatList,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { useAuth } from '../src/AuthContext';
 import { BASE_URL } from '../src/config';
-import { Ionicons } from '@expo/vector-icons';
 
 
 export type Product = {
@@ -22,6 +22,7 @@ export type Product = {
     oldPrice?: number;
     image: string;
     rating?: number;
+    isFavorite?: boolean;
 };
 
 const subCategories = [
@@ -40,23 +41,45 @@ export default function CategoryList() {
     const itemWidth = (screenWidth - 40) / 2;
     const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
     const router = useRouter();
+    const { token } = useAuth();
     const handlePress = (id: string) => {
         router.push({ pathname: '/(auth)/ProductDetail', params: { id } });
     };
 
 
     useEffect(() => {
-        const fetchFeaturedProducts = async () => {
-            try {
-                const res = await axios.get(`${BASE_URL}/api/products?featured=true`);
-                setFeaturedProducts(res.data);
-            } catch (error) {
-                console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
-            }
-        };
+  const fetchFeaturedProducts = async () => {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
+      const res = await axios.get(url, { headers });
+      // nếu backend chưa hỗ trợ withFavorite, isFavorite sẽ undefined -> ép false
+      setFeaturedProducts(res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite })));
+    } catch (error) {
+      console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
+    }
+  };
+  fetchFeaturedProducts();
+}, [token]);
 
-        fetchFeaturedProducts();
-    }, []);
+async function toggleFavInList(id: string, next: boolean) {
+  if (!token) { alert('Bạn cần đăng nhập'); return; }
+  const headers = { Authorization: `Bearer ${token}` };
+
+  // optimistic UI
+  setFeaturedProducts(prev => prev.map(p => p._id === id ? { ...p, isFavorite: next } : p));
+
+  try {
+    if (next) {
+      await axios.post(`${BASE_URL}/api/wishlists`, { productId: id }, { headers });
+    } else {
+      await axios.delete(`${BASE_URL}/api/wishlists/${id}`, { headers });
+    }
+  } catch (e) {
+    // revert nếu lỗi
+    setFeaturedProducts(prev => prev.map(p => p._id === id ? { ...p, isFavorite: !next } : p));
+  }
+}
 
     return (
         <View style={styles.container}>
@@ -122,13 +145,8 @@ export default function CategoryList() {
                         style={[styles.productCard, { width: itemWidth }]}
                         onPress={() => handlePress(item._id)}
                     >
-                        <View >
-                            <Image
-                                source={{ uri: item.image }}
-                                style={styles.productImage}
-                                resizeMode="cover"
-                            />
-                        </View>
+                     <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
+
 
                         <Text style={styles.productPrice}>
                             {item.price.toLocaleString()} ₫
@@ -276,4 +294,14 @@ const styles = StyleSheet.create({
         marginHorizontal: 8,
         marginBottom: 8,
     },
+productImageWrap: { position: 'relative' },
+favBtn: {
+  position: 'absolute',
+  right: 8,
+  top: 8,
+  padding: 6,
+  backgroundColor: 'rgba(255,255,255,0.9)',
+  borderRadius: 999,
+},
+
 });
