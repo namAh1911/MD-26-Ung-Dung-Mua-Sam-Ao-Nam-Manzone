@@ -1,21 +1,22 @@
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    Image,
-    TouchableOpacity,
-    Dimensions,
-    Alert,
-    Modal,
-} from 'react-native';
-import Carousel from 'react-native-reanimated-carousel';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import { BASE_URL } from '../src/config';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Image,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
+import { useAuth } from '../src/AuthContext';
 import { useCart } from '../src/CartContext';
+import { BASE_URL } from '../src/config';
 
 type Product = {
     _id: string;
@@ -54,6 +55,8 @@ export default function ProductDetail() {
     const [showMore, setShowMore] = useState(false);
     const [relatedProducts, setRelatedProducts] = useState<ProductType[]>([]);
     const router = useRouter();
+    const { token } = useAuth();
+    const [isFavorite, setIsFavorite] = useState<boolean>(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const [actionMode, setActionMode] = useState<'addToCart' | 'buyNow' | null>(null);
@@ -82,6 +85,25 @@ export default function ProductDetail() {
         v => v.color === selectedColor && v.size === selectedSize
     );
     const stock = currentVariant?.quantity || 0;
+
+    const toggleFavorite = async () => {
+  if (!token) { Alert.alert('Bạn cần đăng nhập'); return; }
+  if (!product) return;
+
+  const next = !isFavorite;
+  setIsFavorite(next); // optimistic
+  try {
+    const headers = { Authorization: `Bearer ${token}` };
+    if (next) {
+      await axios.post(`${BASE_URL}/api/wishlists`, { productId: product._id }, { headers });
+    } else {
+      await axios.delete(`${BASE_URL}/api/wishlists/${product._id}`, { headers });
+    }
+  } catch (e) {
+    setIsFavorite(!next); // revert nếu lỗi
+    Alert.alert('Lỗi', 'Không thể cập nhật yêu thích');
+  }
+};
 
     const handleAddToCart = () => {
         if (!selectedColor || !selectedSize) {
@@ -173,17 +195,21 @@ export default function ProductDetail() {
 
     // Move fetchProduct before useEffect
     const fetchProduct = async () => {
-        try {
-            const res = await axios.get(`${BASE_URL}/api/products/${id}`);
-            setProduct(res.data);
-        } catch (err) {
-            Alert.alert('Lỗi', 'Không thể tải sản phẩm');
-        }
-    };
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+    const res = await axios.get(`${BASE_URL}/api/products/${id}`, { headers });
+    setProduct(res.data);
+    setIsFavorite(!!res.data?.isFavorite);
+  } catch (err) {
+    Alert.alert('Lỗi', 'Không thể tải sản phẩm');
+  }
+};
 
-    useEffect(() => {
-        if (id) fetchProduct();
-    }, [id]);
+useEffect(() => {
+  if (id) fetchProduct();
+}, [id, token]);
+
+
 
     useEffect(() => {
         setRelatedProducts([]);
@@ -314,12 +340,16 @@ export default function ProductDetail() {
                     <Ionicons name="arrow-back" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Chi Tiết Sản Phẩm</Text>
-                <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexDirection: 'row' }}>
+                <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 10 }}>
+                    <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? '#e61c58' : '#222'} />
+                </TouchableOpacity>
                     <Ionicons name="share-social-outline" size={22} style={{ marginRight: 10 }} />
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
-                        <Ionicons name="cart-outline" size={22} />
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
+                    <Ionicons name="cart-outline" size={22} />
+                        </TouchableOpacity>
+            </View>
+
             </View>
 
             <ScrollView>
