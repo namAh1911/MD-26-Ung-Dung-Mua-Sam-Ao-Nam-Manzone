@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#f66',
+    backgroundColor: '#ff4d4f',
   },
   greetingSection: {
     paddingHorizontal: 20,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   featuredWrapper: {
-    backgroundColor: '#f66',
+    backgroundColor: '#ff4d4f',
     flex: 1,
     marginTop: 0, // Để chồng lên phần trước nếu muốn liền mạch
   },
