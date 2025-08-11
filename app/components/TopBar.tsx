@@ -29,7 +29,7 @@ const TopBar = () => {
 
 const styles = StyleSheet.create({
   topBar: {
-    backgroundColor: '#f66',
+    backgroundColor: '#ff4d4f',
     paddingTop: 35,
     paddingHorizontal: 20,
     paddingBottom: 1,

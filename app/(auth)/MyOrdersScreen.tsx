@@ -15,6 +15,7 @@ import { useAuth } from '../src/AuthContext';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { socket } from '../src/socket';
+import { useLocalSearchParams } from 'expo-router';
 
 interface OrderItem {
   product_id: string;
@@ -50,7 +51,13 @@ export default function MyOrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('pending');
   const router = useRouter();
+  const params = useLocalSearchParams();
 
+  useEffect(() => {
+    if (params?.initialTab) {
+      setSelectedTab(String(params.initialTab));
+    }
+  }, [params]);
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -71,7 +78,7 @@ export default function MyOrdersScreen() {
 
       socket.on('order_status_updated', (data) => {
         console.log('🔁 Đơn hàng cập nhật qua socket:', data);
-        setLoading(true); 
+        setLoading(true);
         fetchOrders(); // Gọi lại API để cập nhật UI
       });
 
@@ -92,9 +99,9 @@ export default function MyOrdersScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} />
+          <Ionicons name="arrow-back" size={24} color="#ffffffff" />
         </TouchableOpacity>
-        <Text style={styles.title}>Đơn Hàng</Text>
+        <Text style={styles.title1}>Đơn hàng</Text>
         <View style={{ width: 24 }} />
       </View>
       {/* Tabs */}
@@ -135,6 +142,7 @@ export default function MyOrdersScreen() {
         <Text style={{ margin: 20 }}>Không có đơn hàng nào.</Text>
       ) : (
         <FlatList
+          style={{ flex: 1 }}
           data={filteredOrders}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => {
@@ -212,15 +220,18 @@ const getStatusStyle = (status: string) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
+    backgroundColor: '#ff4d4f',
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    paddingTop: '10%',
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   title: { fontSize: 18, fontWeight: 'bold' },
+  title1: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
   tabs: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -230,7 +241,7 @@ const styles = StyleSheet.create({
 
   },
   tabItem: {
-    paddingVertical: 12,
+    paddingVertical: '3%',
     paddingHorizontal: '1%',
     marginRight: '1%',
 
