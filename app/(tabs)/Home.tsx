@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -27,36 +27,73 @@ export type Product = {
   oldPrice?: number;
   image: string;
   rating?: number;
+  ratingAvg?: number;   
+  ratingCount?: number;
 };
+
+// ⭐ Component hiển thị 0–5 sao
+const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
+  const rounded = Math.round(value); // đơn giản: làm tròn
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Ionicons
+          key={i}
+          name={rounded >= i + 1 ? 'star' : 'star-outline'}
+          size={size}
+          color={'#f5a623'}
+          style={{ marginRight: 2 }}
+        />
+      ))}
+    </View>
+  );
+};
+
 
 export default function HomeScreen() {
   const router = useRouter();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/products?featured=true`);
-        setFeaturedProducts(res.data);
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
-      }
-    };
-
-    fetchFeaturedProducts();
+  const fetchFeaturedProducts = useCallback(async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products?featured=true&_=${Date.now()}`);
+      setFeaturedProducts(res.data);
+    } catch (error) {
+      console.error('Lỗi khi fetch sản phẩm nổi bật:', error);
+    }
   }, []);
+   // gọi 1 lần khi mount
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, [fetchFeaturedProducts]);
+
+  // gọi lại MỖI LẦN quay về Home
+  useFocusEffect(
+    useCallback(() => {
+      fetchFeaturedProducts();
+      return () => {};
+    }, [fetchFeaturedProducts])
+  );
+
 
    const handleSearch = async () => {
-    if (searchQuery.trim()) {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/products?name=${searchQuery}`);
-        setFeaturedProducts(res.data); // Cập nhật danh sách sản phẩm tìm được
-      } catch (error) {
-        console.error("Lỗi khi tìm kiếm sản phẩm:", error);
-      }
+  const q = searchQuery.trim();
+  if (!q) {
+    await fetchFeaturedProducts();   // ô trống -> reset featured
+    return;
+  }
+  try {
+    const res = await axios.get(`${BASE_URL}/api/products`, { params: { name: q } });
+    setFeaturedProducts(res.data);
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      setFeaturedProducts([]);       // không có kết quả
+    } else {
+      console.error('Lỗi khi tìm kiếm sản phẩm:', error);
     }
-  };
+  }
+};
+
 
   const categories = [
     {
@@ -119,10 +156,15 @@ export default function HomeScreen() {
       <Text style={styles.oldPrice}>
         {(item.oldPrice || item.price * 1.2).toLocaleString()}đ
       </Text>
-      <View style={styles.ratingContainer}>
-        <Ionicons name="star" size={14} color="#fff" />
-        <Text style={styles.ratingText}>{item.rating || 4.5}</Text>
-      </View>
+     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+  <Stars value={(item.ratingAvg ?? 0)} size={12} />
+<Text style={{ fontSize: 12, color: '#555', marginLeft: 6 }}>
+  {(item.ratingAvg ?? 0).toFixed(1)}
+  {!!item.ratingCount && ` (${item.ratingCount})`}
+</Text>
+
+</View>
+
     </TouchableOpacity>
   );
 

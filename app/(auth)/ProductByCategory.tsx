@@ -1,25 +1,44 @@
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    View,
-    Text,
-    FlatList,
     ActivityIndicator,
+    FlatList,
+    Image,
     StyleSheet,
+    Text,
     TouchableOpacity,
-    Image
+    View
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import axios from 'axios';
 import { BASE_URL } from '../src/config';
-import { Ionicons } from '@expo/vector-icons';
 
 interface Product {
     _id: string;
     name: string;
     image: string;
     price: number;
-
+  ratingAvg?: number;  
+  ratingCount?: number; 
 }
+
+
+const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
+  const rounded = Math.round(value);
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Ionicons
+          key={i}
+          name={rounded >= i + 1 ? 'star' : 'star-outline'}
+          size={size}
+          color={'#f5a623'}
+          style={{ marginRight: 2 }}
+        />
+      ))}
+    </View>
+  );
+};
 
 
 export default function ProductByCategoryScreen() {
@@ -84,6 +103,13 @@ export default function ProductByCategoryScreen() {
                         >
                             <Image source={{ uri: item.image }} style={styles.image} />
                             <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+                            <View style={styles.ratingRow}>
+  <Stars value={(item.ratingAvg ?? 0)} size={12} />
+  <Text style={styles.ratingText}>
+    {(item.ratingAvg ?? 0).toFixed(1)}
+    {!!item.ratingCount && ` (${item.ratingCount})`}
+  </Text>
+</View>
                             <Text style={styles.price}>{item.price.toLocaleString()}₫</Text>
                         </TouchableOpacity>
                     )}
@@ -154,5 +180,16 @@ const styles = StyleSheet.create({
         color: '#d0021b',
         fontWeight: '600',
     },
+    ratingRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 4,
+},
+ratingText: {
+  fontSize: 12,
+  color: '#555',
+  marginLeft: 6,
+},
+
 });
 
