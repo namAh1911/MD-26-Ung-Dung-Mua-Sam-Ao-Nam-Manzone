@@ -14,6 +14,7 @@ import {
     View,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import ProductComments from '../components/ProductComments';
 import { useAuth } from '../src/AuthContext';
 import { useCart } from '../src/CartContext';
 import { BASE_URL } from '../src/config';
@@ -28,6 +29,9 @@ type Product = {
     brand: string;
     category: string;
     quantity: number;
+    ratingAvg?: number;
+  ratingCount?: number;
+  isFavorite?: boolean;
     variations: {
         color: string;
         size: string;
@@ -382,9 +386,14 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.infoContainer}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.productPrice}>{product.price.toLocaleString()}đ</Text>
-                </View>
+  <Text style={styles.productName}>{product.name}</Text>
+  <Text style={styles.productPrice}>{product.price.toLocaleString()}đ</Text>
+  {!!product.ratingCount && (
+    <Text style={{ marginTop: 4, color: '#666' }}>
+      {Number(product.ratingAvg || 0).toFixed(1)} ★ ({product.ratingCount})
+    </Text>
+  )}
+</View>
 
                 <View style={styles.tabContainer}>
                     <TouchableOpacity
@@ -428,10 +437,13 @@ useEffect(() => {
                 )}
 
                 {tab === 'reviews' && (
-                    <View style={styles.detailBox}>
-                        <Text style={{ color: '#888' }}>Chưa có đánh giá.</Text>
-                    </View>
-                )}
+  <View style={styles.detailBox}>
+    <ProductComments
+      productId={id as string}
+      onChanged={fetchProduct} // cập nhật ratingAvg/ratingCount sau khi user đánh giá
+    />
+  </View>
+)}
 
                 {relatedProducts.length > 0 && (
                     <View style={styles.relatedContainer}>
