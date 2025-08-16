@@ -79,15 +79,15 @@ export default function HomeScreen() {
    const handleSearch = async () => {
   const q = searchQuery.trim();
   if (!q) {
-    await fetchFeaturedProducts();   // ô trống -> reset featured
-    return;
+    await fetchFeaturedProducts();   
+      return;
   }
   try {
     const res = await axios.get(`${BASE_URL}/api/products`, { params: { name: q } });
     setFeaturedProducts(res.data);
   } catch (error: any) {
     if (error?.response?.status === 404) {
-      setFeaturedProducts([]);       // không có kết quả
+      setFeaturedProducts([]);      
     } else {
       console.error('Lỗi khi tìm kiếm sản phẩm:', error);
     }

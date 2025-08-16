@@ -3,13 +3,13 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useAuth } from "../src/AuthContext";
 import { BASE_URL } from "../src/config";
@@ -51,7 +51,11 @@ const subCategories = [
   },
 ];
 
-const filters = ["Bán nhiều nhất", "Giá cao", "Giá thấp", ,];
+const filters = [
+  { key: 'sold_desc',  label: 'Bán nhiều nhất' }, 
+  { key: 'price_desc', label: 'Giá cao' },        
+  { key: 'price_asc',  label: 'Giá thấp' },      
+];
 
 const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
   const rounded = Math.round(value);
@@ -75,6 +79,15 @@ export default function CategoryList() {
   const itemWidth = (screenWidth - 40) / 2;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const router = useRouter();
+  const onPressFilter = (f: { key: string; label: string }) => {
+  if (f.key === 'sold_desc') {
+    router.push('/BestSelling');    
+  } else if (f.key === 'price_desc') {
+    router.push('/PriceHigh');      
+  } else if (f.key === 'price_asc') {
+    router.push('/PriceLow');      
+  }
+};
   const { token } = useAuth();
   const handlePress = (id: string) => {
     router.push({ pathname: "/(auth)/ProductDetail", params: { id } });
@@ -181,12 +194,16 @@ export default function CategoryList() {
       </View>
       {/* Filter */}
       <View style={styles.filterRow}>
-        {filters.map((filter, index) => (
-          <TouchableOpacity key={index} style={styles.filterBtn}>
-            <Text style={styles.filterText}>{filter}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+  {filters.map((f) => (
+    <TouchableOpacity
+      key={f.key}
+      style={styles.filterBtn}
+      onPress={() => onPressFilter(f)}
+    >
+      <Text style={styles.filterText}>{f.label}</Text>
+    </TouchableOpacity>
+  ))}
+</View>
 
       {/* Gợi ý sản phẩm */}
       <Text style={styles.sectionTitle}>Gợi Ý Riêng Cho Bạn</Text>
