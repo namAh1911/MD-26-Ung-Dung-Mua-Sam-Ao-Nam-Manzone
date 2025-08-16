@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert, Dimensions, FlatList, Image, RefreshControl,
-    StyleSheet, Text, TouchableOpacity, View,
+  Alert, Dimensions, FlatList, Image, RefreshControl,
+  StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { useAuth } from '../src/AuthContext';
 import { BASE_URL } from '../src/config';

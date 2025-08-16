@@ -1,5 +1,5 @@
 
-// src/components/ProductComments.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -10,7 +10,7 @@ import { createComment, deleteComment, fetchComments, updateComment } from '../s
 
 type Props = {
   productId: string;
-  onChanged?: () => void; // call when a review is created/updated/deleted so parent can refresh product stats
+  onChanged?: () => void; 
 };
 
 export default function ProductComments({ productId, onChanged }: Props) {
