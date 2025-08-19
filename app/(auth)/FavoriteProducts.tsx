@@ -1,19 +1,47 @@
-import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+// app/(auth)/FavoriteProducts.tsx
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert, Dimensions, FlatList, Image, RefreshControl,
-  StyleSheet, Text, TouchableOpacity, View,
-} from 'react-native';
-import { useAuth } from '../src/AuthContext';
-import { BASE_URL } from '../src/config';
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "../src/AuthContext";
+import { BASE_URL } from "../src/config";
 
 type Product = {
   _id: string;
   name: string;
   price: number;
   image: string;
+  ratingAvg?: number;
+  ratingCount?: number;
+};
+
+// ⭐ giống Home
+const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
+  const rounded = Math.round(value);
+  return (
+    <View style={{ flexDirection: "row" }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Ionicons
+          key={i}
+          name={rounded >= i + 1 ? "star" : "star-outline"}
+          size={size}
+          color={"#f5a623"}
+          style={{ marginRight: 2 }}
+        />
+      ))}
+    </View>
+  );
 };
 
 export default function FavoriteProducts() {
@@ -35,16 +63,18 @@ export default function FavoriteProducts() {
     try {
       setLoading(true);
       const res = await axios.get(`${BASE_URL}/api/wishlists/me`, { headers });
-      const list: Product[] = (res.data?.products || []);
+      const list: Product[] = res.data?.products || [];
       setItems(list);
     } catch (e) {
-      Alert.alert('Lỗi', 'Không tải được danh sách yêu thích');
+      Alert.alert("Lỗi", "Không tải được danh sách yêu thích");
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -55,28 +85,55 @@ export default function FavoriteProducts() {
   const removeItem = async (id: string) => {
     if (!token) return;
     const prev = items;
-    setItems(prev.filter(p => p._id !== id)); // optimistic
+    setItems(prev.filter((p) => p._id !== id)); // optimistic
     try {
       await axios.delete(`${BASE_URL}/api/wishlists/${id}`, { headers });
     } catch {
       setItems(prev); // revert
-      Alert.alert('Lỗi', 'Không thể xoá khỏi yêu thích');
+      Alert.alert("Lỗi", "Không thể xoá khỏi yêu thích");
     }
   };
 
   const renderItem = ({ item }: { item: Product }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push({ pathname: '/(auth)/ProductDetail', params: { id: item._id } })}
+      onPress={() =>
+        router.push({
+          pathname: "/(auth)/ProductDetail",
+          params: { id: item._id },
+        })
+      }
     >
-      <View style={{ position: 'relative' }}>
+      <View style={{ position: "relative" }}>
         <Image source={{ uri: item.image }} style={styles.image} />
-        <TouchableOpacity onPress={() => removeItem(item._id)} style={styles.heartBtn}>
+        <TouchableOpacity
+          onPress={() => removeItem(item._id)}
+          style={styles.heartBtn}
+        >
           <Ionicons name="heart" size={18} color="#e61c58" />
         </TouchableOpacity>
       </View>
-      <Text numberOfLines={2} style={styles.name}>{item.name}</Text>
+
+      <Text numberOfLines={2} style={styles.name}>
+        {item.name}
+      </Text>
       <Text style={styles.price}>{item.price.toLocaleString()} ₫</Text>
+
+      {/* ⭐️ Cụm rating */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 4,
+          marginBottom: 8,
+        }}
+      >
+        <Stars value={item.ratingAvg ?? 0} size={12} />
+        <Text style={{ fontSize: 12, color: "#555", marginLeft: 6 }}>
+          {(item.ratingAvg ?? 0).toFixed(1)}
+          {!!item.ratingCount && ` (${item.ratingCount})`}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -84,7 +141,10 @@ export default function FavoriteProducts() {
     <View style={styles.container}>
       {/* HEADER hồng có nút back */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerIconLeft}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.headerIconLeft}
+        >
           <Ionicons name="arrow-back" color="#fff" size={24} />
         </TouchableOpacity>
 
@@ -97,75 +157,83 @@ export default function FavoriteProducts() {
       {/* NỘI DUNG */}
       {!token ? (
         <View style={styles.center}>
-          <Text style={{ color: '#444' }}>Bạn cần đăng nhập để xem yêu thích.</Text>
+          <Text style={{ color: "#444" }}>
+            Bạn cần đăng nhập để xem yêu thích.
+          </Text>
         </View>
-      ) : (!loading && items.length === 0) ? (
+      ) : !loading && items.length === 0 ? (
         <View style={styles.center}>
-          <Text style={{ color: '#444' }}>Chưa có sản phẩm yêu thích.</Text>
+          <Text style={{ color: "#444" }}>Chưa có sản phẩm yêu thích.</Text>
         </View>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(i) => i._id}
           numColumns={2}
-          columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 12 }}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: 12,
+          }}
           contentContainerStyle={{ paddingVertical: 12 }}
           renderItem={renderItem}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </View>
   );
 }
 
-const itemWidth = (Dimensions.get('window').width - 40) / 2;
+const itemWidth = (Dimensions.get("window").width - 40) / 2;
 
 const styles = StyleSheet.create({
-  // NỀN hồng
-  container: {
-    flex: 1,
-    backgroundColor: '#ffd6d2',
-  },
-
-
+  container: { flex: 1, backgroundColor: "#ffd6d2" },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: '6%',
-    backgroundColor: '#f66060ff',
+    paddingVertical: "6%",
+    backgroundColor: "#f66060ff",
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
   },
-  headerIconLeft: {
-    width: 40,
-    alignItems: 'flex-start',
-  },
+  headerIconLeft: { width: 40, alignItems: "flex-start" },
   headerTitle: {
     flex: 1,
-    textAlign: 'center',
-    color: '#fff',
+    textAlign: "center",
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
-  // LIST
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+
   card: {
     width: itemWidth,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     marginBottom: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
   },
-  image: { width: '100%', height: 200, resizeMode: 'cover' },
+  image: { width: "100%", height: 200, resizeMode: "cover" },
   heartBtn: {
-    position: 'absolute', right: 8, top: 8,
-    padding: 6, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 999,
+    position: "absolute",
+    right: 8,
+    top: 8,
+    padding: 6,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 999,
   },
-  name: { fontSize: 13, color: '#333', marginHorizontal: 8, marginTop: 8 },
-  price: { fontWeight: 'bold', fontSize: 14, marginHorizontal: 8, marginVertical: 8, color: '#000' },
+  name: { fontSize: 13, color: "#333", marginHorizontal: 8, marginTop: 8 },
+  price: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginHorizontal: 8,
+    marginTop: 6,
+    color: "#000",
+  },
 });
