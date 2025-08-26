@@ -1,6 +1,6 @@
 // app/(tabs)/Chat.tsx
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import React, { useRef, useState } from 'react';
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import React, { useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -10,13 +10,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Msg = { id: string; from: 'bot' | 'user'; text: string };
+type Msg = { id: string; from: "bot" | "user"; text: string };
 
 // Các câu hỏi mẫu – chỉnh sửa ở đây
 const QUICK = [
+
   'Liên hệ',
   'Tư vấn size',
   'Phí ship bao nhiêu?',
@@ -28,10 +29,10 @@ const QUICK = [
   
 ];
 
-
 function replyFor(raw: string): string {
   const text = raw.toLowerCase();
   if (/(^|\s)(chào|xin chào|hi|hello)\b/.test(text))
+
     return 'Chào bạn 👋 Mình hỗ trợ: phí ship, giao hàng, giờ mở cửa, đổi trả, tư vấn size…';
   if (text.includes('phí ship') || text.includes('vận chuyển') || text.includes('ship bao nhiêu'))
     return 'Phí ship nội thành 20–30k, ngoại tỉnh 30–40k. Đơn từ 499k **free ship**.';
@@ -55,39 +56,51 @@ export default function Chat() {
   const insets = useSafeAreaInsets();
   const BOTTOM_OFFSET = Math.max(tabBarH, insets.bottom) + 0; // đội panel lên khỏi TabBar
 
- 
-  const PANEL_MAX_H = 180; 
-  const BOTTOM_STACK_H = PANEL_MAX_H + 10; 
+  const PANEL_MAX_H = 180;
+  const BOTTOM_STACK_H = PANEL_MAX_H + 10;
 
   const [messages, setMessages] = useState<Msg[]>([
     {
-      id: '0',
-      from: 'bot',
-      text: 'Chào bạn 👋 Mình là trợ lý cửa hàng. Chọn câu hỏi bên dưới nha.',
+      id: "0",
+      from: "bot",
+      text: "Chào bạn 👋 Mình là trợ lý cửa hàng. Chọn câu hỏi bên dưới nha.",
     },
   ]);
   const listRef = useRef<FlatList<Msg>>(null);
 
   const sendQuick = (q: string) => {
-    const userMsg: Msg = { id: Date.now() + '', from: 'user', text: q };
+    const userMsg: Msg = { id: Date.now() + "", from: "user", text: q };
     setMessages((m) => [...m, userMsg]);
     setTimeout(() => {
-      const botMsg: Msg = { id: Date.now() + '_b', from: 'bot', text: replyFor(q) };
+      const botMsg: Msg = {
+        id: Date.now() + "_b",
+        from: "bot",
+        text: replyFor(q),
+      };
       setMessages((m) => [...m, botMsg]);
       listRef.current?.scrollToEnd({ animated: true });
     }, 250);
   };
 
   const renderItem = ({ item }: { item: Msg }) => (
-    <View style={[styles.bubble, item.from === 'user' ? styles.me : styles.bot]}>
-      <Text style={{ color: item.from === 'user' ? '#fff' : '#000' }}>{item.text}</Text>
+    <View
+      style={[styles.bubble, item.from === "user" ? styles.me : styles.bot]}
+    >
+      <Text style={{ color: item.from === "user" ? "#fff" : "#000" }}>
+        {item.text}
+      </Text>
     </View>
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffd6d2' }}>
+    <View style={{ flex: 1, backgroundColor: "#ffd6d2" }}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 1, paddingBottom: 20 }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: insets.top + 1, paddingBottom: 20 },
+        ]}
+      >
         <Text style={styles.headerTitle}>Trợ lý cửa hàng</Text>
       </View>
 
@@ -100,7 +113,9 @@ export default function Chat() {
           padding: 12,
           paddingBottom: BOTTOM_OFFSET + BOTTOM_STACK_H, // chừa chỗ cho panel dọc + tabbar
         }}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={() =>
+          listRef.current?.scrollToEnd({ animated: true })
+        }
       />
 
       <View style={[styles.bottom, { bottom: BOTTOM_OFFSET }]}>
@@ -110,7 +125,11 @@ export default function Chat() {
           contentContainerStyle={styles.listCol}
         >
           {QUICK.map((q) => (
-            <TouchableOpacity key={q} style={styles.rowBtn} onPress={() => sendQuick(q)}>
+            <TouchableOpacity
+              key={q}
+              style={styles.rowBtn}
+              onPress={() => sendQuick(q)}
+            >
               <Text style={styles.rowText}>{q}</Text>
             </TouchableOpacity>
           ))}
@@ -120,35 +139,54 @@ export default function Chat() {
   );
 }
 
-const W = Dimensions.get('window').width;
+const W = Dimensions.get("window").width;
 const styles = StyleSheet.create({
   header: {
+
     backgroundColor: "#ff4d4f",
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
+
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
+
     color: '#fff',
     fontSize: 18,
     fontWeight: '500',
     textAlign: 'center',
+
     letterSpacing: 0.2,
   },
 
-  bubble: { maxWidth: W * 0.7, marginVertical: 6, padding: 10, borderRadius: 12 },
-  me: { alignSelf: 'flex-end', backgroundColor: '#f66060ff', borderTopRightRadius: 4 },
-  bot: { alignSelf: 'flex-start', backgroundColor: '#fff', borderTopLeftRadius: 4, borderWidth: 1, borderColor: '#eee' },
+  bubble: {
+    maxWidth: W * 0.7,
+    marginVertical: 6,
+    padding: 10,
+    borderRadius: 12,
+  },
+  me: {
+    alignSelf: "flex-end",
+    backgroundColor: "#f66060ff",
+    borderTopRightRadius: 4,
+  },
+  bot: {
+    alignSelf: "flex-start",
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
 
   bottom: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
-    backgroundColor: '#ffd6d2',
+    backgroundColor: "#ffd6d2",
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
@@ -160,12 +198,12 @@ const styles = StyleSheet.create({
 },
 
   rowBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+    paddingVertical: Platform.OS === "ios" ? 10 : 8,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
   },
-  rowText: { fontSize: 14, color: '#000' },
+  rowText: { fontSize: 14, color: "#000" },
 });

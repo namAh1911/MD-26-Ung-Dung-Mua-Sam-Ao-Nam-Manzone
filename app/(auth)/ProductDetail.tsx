@@ -344,6 +344,7 @@ export default function ProductDetail() {
                     <Ionicons name="arrow-back" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Chi Tiết Sản Phẩm</Text>
+
                 <View style={{ flexDirection: 'row' }}>
                     <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 10 }}>
                         <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? '#e61c58' : '#222'} />
@@ -353,7 +354,6 @@ export default function ProductDetail() {
                         <Ionicons name="cart-outline" size={22} />
                     </TouchableOpacity>
                 </View>
-
             </View>
 
             <ScrollView>
