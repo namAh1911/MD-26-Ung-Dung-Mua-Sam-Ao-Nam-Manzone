@@ -8,6 +8,7 @@ import {
   Image,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,34 +28,18 @@ export type Product = {
 };
 
 const subCategories = [
-  {
-    id: 1,
-    title: "Áo thun",
-    image: require("../../assets/images/t-shirt.png"),
-  },
+  { id: 1, title: "Áo thun", image: require("../../assets/images/t-shirt.png") },
   { id: 2, title: "Áo sơ mi", image: require("../../assets/images/shirt.png") },
-  {
-    id: 3,
-    title: "Áo hoodie",
-    image: require("../../assets/images/hoodie.png"),
-  },
+  { id: 3, title: "Áo hoodie", image: require("../../assets/images/hoodie.png") },
   { id: 4, title: "Áo len", image: require("../../assets/images/sweater.png") },
-  {
-    id: 5,
-    title: "Áo khoác",
-    image: require("../../assets/images/jacket.png"),
-  },
-  {
-    id: 6,
-    title: "Áo vest",
-    image: require("../../assets/images/icons8-vest-48.png"),
-  },
+  { id: 5, title: "Áo khoác", image: require("../../assets/images/jacket.png") },
+  { id: 6, title: "Áo vest", image: require("../../assets/images/icons8-vest-48.png") },
 ];
 
 const filters = [
-  { key: 'sold_desc',  label: 'Bán nhiều nhất' }, 
-  { key: 'price_desc', label: 'Giá cao' },        
-  { key: 'price_asc',  label: 'Giá thấp' },      
+  { key: "sold_desc", label: "Bán nhiều nhất" },
+  { key: "price_desc", label: "Giá cao" },
+  { key: "price_asc", label: "Giá thấp" },
 ];
 
 const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
@@ -78,39 +63,61 @@ export default function CategoryList() {
   const screenWidth = Dimensions.get("window").width;
   const itemWidth = (screenWidth - 40) / 2;
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [showSearch, setShowSearch] = useState(false); // toggle search
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const onPressFilter = (f: { key: string; label: string }) => {
-  if (f.key === 'sold_desc') {
-    router.push('/BestSelling');    
-  } else if (f.key === 'price_desc') {
-    router.push('/PriceHigh');      
-  } else if (f.key === 'price_asc') {
-    router.push('/PriceLow');      
-  }
-};
   const { token } = useAuth();
+
+  const onPressFilter = (f: { key: string; label: string }) => {
+    if (f.key === "sold_desc") {
+      router.push("/BestSelling");
+    } else if (f.key === "price_desc") {
+      router.push("/PriceHigh");
+    } else if (f.key === "price_asc") {
+      router.push("/PriceLow");
+    }
+  };
+
   const handlePress = (id: string) => {
     router.push({ pathname: "/(auth)/ProductDetail", params: { id } });
   };
 
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        const headers = token
-          ? { Authorization: `Bearer ${token}` }
-          : undefined;
-        const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
-        const res = await axios.get(url, { headers });
-    
-        setFeaturedProducts(
-          res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite }))
-        );
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
-      }
-    };
     fetchFeaturedProducts();
   }, [token]);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
+      const res = await axios.get(url, { headers });
+      setFeaturedProducts(res.data);
+    } catch (error) {
+      console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
+    }
+  };
+
+  const handleSearch = async () => {
+    const q = searchQuery.trim();
+    if (!q) {
+      await fetchFeaturedProducts();
+      return;
+    }
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await axios.get(`${BASE_URL}/api/products`, {
+        params: { name: q },
+        headers,
+      });
+      setFeaturedProducts(res.data);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        setFeaturedProducts([]);
+      } else {
+        console.error("Lỗi khi tìm kiếm sản phẩm:", error);
+      }
+    }
+  };
 
   async function toggleFavInList(id: string, next: boolean) {
     if (!token) {
@@ -144,6 +151,7 @@ export default function CategoryList() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -160,10 +168,36 @@ export default function CategoryList() {
             size={22}
             color="#fff"
             style={{ marginRight: 10 }}
+            onPress={() => setShowSearch(!showSearch)}
           />
-          <Ionicons name="cart-outline" color="#fff" size={22} />
+          <Ionicons
+    name="cart-outline"
+    color="#fff"
+    size={22}
+    onPress={() => router.push("/(tabs)/Cart")} 
+  />
+          
         </View>
       </View>
+
+      {/* Ô tìm kiếm */}
+      {showSearch && (
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#aaa"
+            style={{ marginRight: 8 }}
+          />
+          <TextInput
+            placeholder="Tìm kiếm sản phẩm"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+          />
+        </View>
+      )}
 
       {/* Danh mục con */}
       <View>
@@ -186,24 +220,24 @@ export default function CategoryList() {
               <View style={styles.categoryCircle}>
                 <Image source={item.image} style={styles.circleIcon} />
               </View>
-
               <Text style={styles.subCategoryText}>{item.title}</Text>
             </TouchableOpacity>
           )}
         />
       </View>
+
       {/* Filter */}
       <View style={styles.filterRow}>
-  {filters.map((f) => (
-    <TouchableOpacity
-      key={f.key}
-      style={styles.filterBtn}
-      onPress={() => onPressFilter(f)}
-    >
-      <Text style={styles.filterText}>{f.label}</Text>
-    </TouchableOpacity>
-  ))}
-</View>
+        {filters.map((f) => (
+          <TouchableOpacity
+            key={f.key}
+            style={styles.filterBtn}
+            onPress={() => onPressFilter(f)}
+          >
+            <Text style={styles.filterText}>{f.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Gợi ý sản phẩm */}
       <Text style={styles.sectionTitle}>Gợi Ý Riêng Cho Bạn</Text>
@@ -223,7 +257,6 @@ export default function CategoryList() {
               style={styles.productImage}
               resizeMode="cover"
             />
-
             <Text style={styles.productPrice}>
               {item.price.toLocaleString()} ₫
             </Text>
@@ -245,19 +278,7 @@ export default function CategoryList() {
 }
 
 const styles = StyleSheet.create({
-  categoryCircle: {
-    backgroundColor: "#ffffffff",
-    borderRadius: 999,
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#ffd6d2",
-  },
+  container: { flex: 1, backgroundColor: "#ffd6d2" },
   header: {
     backgroundColor: "#ff4d4f",
     paddingTop: 50,
@@ -269,19 +290,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-
-  headerIconLeft: {
-    width: 40,
-    alignItems: "flex-start",
-  },
-
+  headerIconLeft: { width: 40, alignItems: "flex-start" },
   headerIconsRight: {
     flexDirection: "row",
     alignItems: "center",
     width: 60,
     justifyContent: "flex-end",
   },
-
   headerTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -289,29 +304,32 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
   },
-
-  subCategoryList: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  subCategoryItem: {
+  // Search box
+  searchContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    marginRight: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 5,
   },
-  circleIcon: {
-    width: 35,
-    height: 35,
-    borderRadius: 30,
-    backgroundColor: "#f2f2f2",
-    resizeMode: "contain",
+  searchInput: { flex: 1, fontSize: 13, color: "#000" },
+  subCategoryList: { paddingVertical: 10, paddingHorizontal: 12 },
+  subCategoryItem: { alignItems: "center", marginRight: 12 },
+  categoryCircle: {
+    backgroundColor: "#fff",
+    borderRadius: 999,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
   },
-  subCategoryText: {
-    fontSize: 13,
-    textAlign: "center",
-    color: "#000",
-  },
+  circleIcon: { width: 35, height: 35, resizeMode: "contain" },
+  subCategoryText: { fontSize: 13, color: "#000" },
   filterRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -328,10 +346,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: "#fff",
   },
-  filterText: {
-    fontSize: 13,
-    color: "#000",
-  },
+  filterText: { fontSize: 13, color: "#000" },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "bold",
@@ -339,10 +354,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: "#000",
   },
-  columnWrapper: {
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-  },
+  columnWrapper: { justifyContent: "space-between", paddingHorizontal: 12 },
   productCard: {
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -351,10 +363,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
-  productImage: {
-    width: "100%",
-    height: 200,
-  },
+  productImage: { width: "100%", height: 200 },
   productPrice: {
     fontWeight: "bold",
     fontSize: 14,
@@ -368,15 +377,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginBottom: 8,
   },
-  productImageWrap: { position: "relative" },
-  favBtn: {
-    position: "absolute",
-    right: 8,
-    top: 8,
-    padding: 6,
-    backgroundColor: "rgba(255,255,255,0.9)",
-    borderRadius: 999,
-  },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -384,9 +384,5 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 4,
   },
-  ratingText: {
-    fontSize: 12,
-    color: "#555",
-    marginLeft: 6,
-  },
+  ratingText: { fontSize: 12, color: "#555", marginLeft: 6 },
 });

@@ -1,7 +1,6 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Chuông
-import { Feather } from '@expo/vector-icons';  // Menu
-import { useDrawer } from './DrawerContext';   // Thêm dòng này
+import { Feather, Ionicons } from '@expo/vector-icons'; // Chuông
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useDrawer } from './DrawerContext'; // Thêm dòng này
 
 const TopBar = () => {
   const { openDrawer } = useDrawer(); // Lấy hàm mở menu
