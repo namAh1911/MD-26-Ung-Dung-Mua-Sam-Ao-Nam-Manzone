@@ -1,9 +1,13 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import {
-  Ionicons, MaterialIcons, FontAwesome5, Entypo, AntDesign, FontAwesome
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  FontAwesome5,
+  Ionicons, MaterialIcons
 } from '@expo/vector-icons';
-import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../src/AuthContext';
 
 export default function Profile() {

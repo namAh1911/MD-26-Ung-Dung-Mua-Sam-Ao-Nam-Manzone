@@ -348,7 +348,7 @@ useEffect(() => {
                 <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 10 }}>
                     <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? '#e61c58' : '#222'} />
                 </TouchableOpacity>
-                    <Ionicons name="share-social-outline" size={22} style={{ marginRight: 10 }} />
+                    {/* <Ionicons name="share-social-outline" size={22} style={{ marginRight: 10 }} /> */}
                         <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
                     <Ionicons name="cart-outline" size={22} />
                         </TouchableOpacity>
