@@ -30,8 +30,8 @@ type Product = {
     category: string;
     quantity: number;
     ratingAvg?: number;
-  ratingCount?: number;
-  isFavorite?: boolean;
+    ratingCount?: number;
+    isFavorite?: boolean;
     variations: {
         color: string;
         size: string;
@@ -91,23 +91,23 @@ export default function ProductDetail() {
     const stock = currentVariant?.quantity || 0;
 
     const toggleFavorite = async () => {
-  if (!token) { Alert.alert('Bạn cần đăng nhập'); return; }
-  if (!product) return;
+        if (!token) { Alert.alert('Bạn cần đăng nhập'); return; }
+        if (!product) return;
 
-  const next = !isFavorite;
-  setIsFavorite(next); // optimistic
-  try {
-    const headers = { Authorization: `Bearer ${token}` };
-    if (next) {
-      await axios.post(`${BASE_URL}/api/wishlists`, { productId: product._id }, { headers });
-    } else {
-      await axios.delete(`${BASE_URL}/api/wishlists/${product._id}`, { headers });
-    }
-  } catch (e) {
-    setIsFavorite(!next); // revert nếu lỗi
-    Alert.alert('Lỗi', 'Không thể cập nhật yêu thích');
-  }
-};
+        const next = !isFavorite;
+        setIsFavorite(next); // optimistic
+        try {
+            const headers = { Authorization: `Bearer ${token}` };
+            if (next) {
+                await axios.post(`${BASE_URL}/api/wishlists`, { productId: product._id }, { headers });
+            } else {
+                await axios.delete(`${BASE_URL}/api/wishlists/${product._id}`, { headers });
+            }
+        } catch (e) {
+            setIsFavorite(!next); // revert nếu lỗi
+            Alert.alert('Lỗi', 'Không thể cập nhật yêu thích');
+        }
+    };
 
     const handleAddToCart = () => {
         if (!selectedColor || !selectedSize) {
@@ -199,19 +199,19 @@ export default function ProductDetail() {
 
     // Move fetchProduct before useEffect
     const fetchProduct = async () => {
-  try {
-    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-    const res = await axios.get(`${BASE_URL}/api/products/${id}`, { headers });
-    setProduct(res.data);
-    setIsFavorite(!!res.data?.isFavorite);
-  } catch (err) {
-    Alert.alert('Lỗi', 'Không thể tải sản phẩm');
-  }
-};
+        try {
+            const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+            const res = await axios.get(`${BASE_URL}/api/products/${id}`, { headers });
+            setProduct(res.data);
+            setIsFavorite(!!res.data?.isFavorite);
+        } catch (err) {
+            Alert.alert('Lỗi', 'Không thể tải sản phẩm');
+        }
+    };
 
-useEffect(() => {
-  if (id) fetchProduct();
-}, [id, token]);
+    useEffect(() => {
+        if (id) fetchProduct();
+    }, [id, token]);
 
 
 
@@ -344,16 +344,16 @@ useEffect(() => {
                     <Ionicons name="arrow-back" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Chi Tiết Sản Phẩm</Text>
-            <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 10 }}>
-                    <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? '#e61c58' : '#222'} />
-                </TouchableOpacity>
-                    {/* <Ionicons name="share-social-outline" size={22} style={{ marginRight: 10 }} /> */}
-                        <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
-                    <Ionicons name="cart-outline" size={22} />
-                        </TouchableOpacity>
-            </View>
 
+                <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity onPress={toggleFavorite} style={{ marginRight: 10 }}>
+                        <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? '#e61c58' : '#222'} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/Cart')}>
+                        <Ionicons name="cart-outline" size={22} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView>
@@ -386,14 +386,14 @@ useEffect(() => {
                 </View>
 
                 <View style={styles.infoContainer}>
-  <Text style={styles.productName}>{product.name}</Text>
-  <Text style={styles.productPrice}>{product.price.toLocaleString()}đ</Text>
-  {!!product.ratingCount && (
-    <Text style={{ marginTop: 4, color: '#666' }}>
-      {Number(product.ratingAvg || 0).toFixed(1)} ★ ({product.ratingCount})
-    </Text>
-  )}
-</View>
+                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={styles.productPrice}>{product.price.toLocaleString()}đ</Text>
+                    {!!product.ratingCount && (
+                        <Text style={{ marginTop: 4, color: '#666' }}>
+                            {Number(product.ratingAvg || 0).toFixed(1)} ★ ({product.ratingCount})
+                        </Text>
+                    )}
+                </View>
 
                 <View style={styles.tabContainer}>
                     <TouchableOpacity
@@ -437,13 +437,13 @@ useEffect(() => {
                 )}
 
                 {tab === 'reviews' && (
-  <View style={styles.detailBox}>
-    <ProductComments
-      productId={id as string}
-      onChanged={fetchProduct} // cập nhật ratingAvg/ratingCount sau khi user đánh giá
-    />
-  </View>
-)}
+                    <View style={styles.detailBox}>
+                        <ProductComments
+                            productId={id as string}
+                            onChanged={fetchProduct} // cập nhật ratingAvg/ratingCount sau khi user đánh giá
+                        />
+                    </View>
+                )}
 
                 {relatedProducts.length > 0 && (
                     <View style={styles.relatedContainer}>
@@ -492,13 +492,14 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     header: {
         flexDirection: 'row',
-        padding: '5%',
-        paddingTop: '8%',
+        paddingTop: 50,
+        paddingBottom: 16,
+        paddingHorizontal: 16,
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#eee',
     },
-    headerTitle: { fontSize: 16, fontWeight: '600' },
+    headerTitle: { fontSize: 16, fontWeight: '600',marginLeft:20},
     infoContainer: { padding: 12 },
     productName: { fontSize: 18, fontWeight: 'bold' },
     productPrice: { fontSize: 16, color: 'red', marginTop: 4 },

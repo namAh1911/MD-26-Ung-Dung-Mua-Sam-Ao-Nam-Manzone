@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', },
   header: {
     backgroundColor: '#ff4d4f',
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -194,8 +194,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   avatar: {
-    width: 60,
-    height: 60,
+    width: 45,
+    height: 45,
     borderRadius: 30,
     marginRight: '2%',
   },

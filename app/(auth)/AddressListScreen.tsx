@@ -125,10 +125,10 @@ export default function AddressListScreen() {
 
 
     const renderAddress = ({ item }: { item: Address }) => (
-        
-        
+
+
         <View style={styles.card}>
-            
+
             <View style={styles.row}>
                 <Ionicons name="home-outline" size={18} color="#000" />
                 <Text style={styles.label}>Địa chỉ</Text>
@@ -157,7 +157,7 @@ export default function AddressListScreen() {
             >
                 <Ionicons name="pencil" size={18} color="#333" />
             </TouchableOpacity>
-            
+
         </View>
     );
 
@@ -171,13 +171,20 @@ export default function AddressListScreen() {
 
     return (
         <View style={styles.container}>
-            
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons name="arrow-back" size={24} />
+                </TouchableOpacity>
+                <Text style={styles.title}>Địa chỉ của tôi</Text>
+                <View style={{ width: 24 }} />
+            </View>
             {addresses.length === 0 ? (
                 <View style={styles.emptyContainer}>
+
                     <Text style={styles.emptyText}>Chưa có địa chỉ nào</Text>
                 </View>
             ) : (
-                
+
                 <FlatList
                     data={addresses}
                     keyExtractor={(item) => item._id}
@@ -204,20 +211,21 @@ export default function AddressListScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff', paddingTop: '10%' },
+    container: { flex: 1, backgroundColor: '#fff', paddingTop: '8%' },
     header: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  backgroundColor: '#e91e63',
-},
-headerTitle: {
-  color: '#fff',
-  fontSize: 18,
-  fontWeight: 'bold',
-},
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderColor: '#ddd',
+    },
+    title: { fontSize: 18, fontWeight: 'bold' },
+    headerTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
 
     loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     card: {
@@ -322,7 +330,7 @@ headerTitle: {
         paddingVertical: 2,
         borderRadius: 4,
         marginLeft: '2%',
-        
+
         alignSelf: 'flex-start',
     },
     defaultBadgeText: {

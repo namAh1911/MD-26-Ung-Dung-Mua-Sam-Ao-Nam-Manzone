@@ -213,14 +213,15 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: '6%',
-    paddingVertical: '9%',
-    backgroundColor: '#f66060ff',
-    borderBottomRightRadius: 30,
+    backgroundColor: "#ff4d4f",
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
 
   },
   centered: {

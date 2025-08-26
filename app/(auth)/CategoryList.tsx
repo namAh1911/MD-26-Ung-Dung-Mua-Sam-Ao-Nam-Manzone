@@ -30,16 +30,30 @@ export type Product = {
 const subCategories = [
   { id: 1, title: "Áo thun", image: require("../../assets/images/t-shirt.png") },
   { id: 2, title: "Áo sơ mi", image: require("../../assets/images/shirt.png") },
-  { id: 3, title: "Áo hoodie", image: require("../../assets/images/hoodie.png") },
-  { id: 4, title: "Áo len", image: require("../../assets/images/sweater.png") },
-  { id: 5, title: "Áo khoác", image: require("../../assets/images/jacket.png") },
-  { id: 6, title: "Áo vest", image: require("../../assets/images/icons8-vest-48.png") },
+
+  {
+    id: 3,
+    title: "Áo hoodie",
+    image: require("../../assets/images/hoodie.png"),
+  },
+  { id: 4, title: "Áo dạ", image: require("../../assets/images/sweater.png") },
+  {
+    id: 5,
+    title: "Áo khoác",
+    image: require("../../assets/images/jacket.png"),
+  },
+  {
+    id: 6,
+    title: "Áo vest",
+    image: require("../../assets/images/icons8-vest-48.png"),
+  },
 ];
 
 const filters = [
   { key: "sold_desc", label: "Bán nhiều nhất" },
   { key: "price_desc", label: "Giá cao" },
   { key: "price_asc", label: "Giá thấp" },
+
 ];
 
 const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
@@ -66,6 +80,7 @@ export default function CategoryList() {
   const [showSearch, setShowSearch] = useState(false); // toggle search
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+
   const { token } = useAuth();
 
   const onPressFilter = (f: { key: string; label: string }) => {
@@ -83,19 +98,26 @@ export default function CategoryList() {
   };
 
   useEffect(() => {
+
+    const fetchFeaturedProducts = async () => {
+      try {
+        const headers = token
+          ? { Authorization: `Bearer ${token}` }
+          : undefined;
+        const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
+        const res = await axios.get(url, { headers });
+
+        setFeaturedProducts(
+          res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite }))
+        );
+      } catch (error) {
+        console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
+      }
+    };
+      
     fetchFeaturedProducts();
   }, [token]);
 
-  const fetchFeaturedProducts = async () => {
-    try {
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-      const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
-      const res = await axios.get(url, { headers });
-      setFeaturedProducts(res.data);
-    } catch (error) {
-      console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
-    }
-  };
 
   const handleSearch = async () => {
     const q = searchQuery.trim();
@@ -303,6 +325,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     flex: 1,
+    marginLeft: 20
+
   },
   // Search box
   searchContainer: {
@@ -356,14 +380,23 @@ const styles = StyleSheet.create({
   },
   columnWrapper: { justifyContent: "space-between", paddingHorizontal: 12 },
   productCard: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#eee",
+    backgroundColor: '#fff',
+        width: '48%',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#eee',
+        padding: 10,
+        marginBottom: 16,
   },
-  productImage: { width: "100%", height: 200 },
+
+  productImage: {
+    width: '100%',
+        height: 150,
+        borderRadius: 8,
+        marginBottom: 8,
+        resizeMode: 'cover',
+   },
+
   productPrice: {
     fontWeight: "bold",
     fontSize: 14,

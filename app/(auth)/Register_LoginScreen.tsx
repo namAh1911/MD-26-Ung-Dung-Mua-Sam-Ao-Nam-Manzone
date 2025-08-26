@@ -22,7 +22,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  logo: { width: 320, height: 220, marginBottom: 0 },
+  logo: { width: 300, height: 200, marginBottom: 0 },
   title: { fontSize: 18, textAlign: 'center', marginBottom: 30, fontWeight:'bold' },
   title2: { fontSize: 16, textAlign: 'center', marginBottom: 30 },
   btnPrimary: {

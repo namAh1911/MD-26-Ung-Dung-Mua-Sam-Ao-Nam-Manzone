@@ -17,65 +17,44 @@ type Msg = { id: string; from: "bot" | "user"; text: string };
 
 // Các câu hỏi mẫu – chỉnh sửa ở đây
 const QUICK = [
-  "Phí ship bao nhiêu?",
-  "Giao hàng bao lâu?",
-  "Giờ mở cửa?",
-  "Chính sách đổi trả?",
-  "Tư vấn size",
-  "Theo dõi đơn hàng",
-  "Liên hệ",
+
+  'Liên hệ',
+  'Tư vấn size',
+  'Phí ship bao nhiêu?',
+  'Giao hàng bao lâu?',
+  'Giờ mở cửa?',
+  'Chính sách đổi trả?',
+  
+  'Theo dõi đơn hàng',
+  
 ];
 
 function replyFor(raw: string): string {
   const text = raw.toLowerCase();
   if (/(^|\s)(chào|xin chào|hi|hello)\b/.test(text))
-    return "Chào bạn 👋 Mình hỗ trợ: phí ship, giao hàng, giờ mở cửa, đổi trả, tư vấn size…";
-  if (
-    text.includes("phí ship") ||
-    text.includes("vận chuyển") ||
-    text.includes("ship bao nhiêu")
-  )
-    return "Phí ship nội thành 20–30k, ngoại tỉnh 30–40k. Đơn từ 499k **free ship**.";
-  if (
-    text.includes("bao lâu") ||
-    text.includes("khi nào") ||
-    text.includes("giao hàng")
-  )
-    return "Giao nội thành 1–2 ngày, ngoại tỉnh 2–4 ngày. Có COD toàn quốc.";
-  if (
-    text.includes("giờ mở") ||
-    text.includes("mở cửa") ||
-    text.includes("giờ làm việc")
-  )
-    return "Giờ hoạt động **08:00–22:00** mỗi ngày.";
-  if (
-    text.includes("đổi") ||
-    text.includes("trả") ||
-    text.includes("đổi trả") ||
-    text.includes("return")
-  )
-    return "Đổi size/mẫu trong **7 ngày**, hàng còn tag, chưa sử dụng. Đổi tại shop hoặc gửi chuyển phát.";
-  if (text.includes("size") || text.includes("kích cỡ"))
-    return "Bạn cho mình chiều cao/cân nặng (vd 1m70/65kg) để tư vấn size chuẩn nhé.";
-  if (
-    text.includes("đơn hàng") ||
-    text.includes("mã đơn") ||
-    text.includes("theo dõi")
-  )
-    return "Bạn gửi giúp mình **mã đơn** (vd MZ123456) để mình kiểm tra tình trạng đơn.";
-  if (
-    text.includes("liên hệ") ||
-    text.includes("hotline") ||
-    text.includes("sđt")
-  )
-    return "Hotline/Zalo: 038 440 2256 – hỗ trợ 08:00–22:00 mỗi ngày.";
-  return "Mình chưa hiểu ý 🥺. Chọn 1 câu bên dưới nhé.";
+
+    return 'Chào bạn 👋 Mình hỗ trợ: phí ship, giao hàng, giờ mở cửa, đổi trả, tư vấn size…';
+  if (text.includes('phí ship') || text.includes('vận chuyển') || text.includes('ship bao nhiêu'))
+    return 'Phí ship nội thành 20–30k, ngoại tỉnh 30–40k. Đơn từ 499k **free ship**.';
+  if (text.includes('bao lâu') || text.includes('khi nào') || text.includes('giao hàng'))
+    return 'Giao nội thành 1–2 ngày, ngoại tỉnh 2–4 ngày. Có COD toàn quốc.';
+  if (text.includes('giờ mở') || text.includes('mở cửa') || text.includes('giờ làm việc'))
+    return 'Giờ hoạt động **08:00–22:00** mỗi ngày.';
+  if (text.includes('đổi') || text.includes('trả') || text.includes('đổi trả') || text.includes('return'))
+    return 'Đổi size/mẫu trong **7 ngày**, hàng còn tag, chưa sử dụng. Đổi tại shop hoặc gửi chuyển phát.';
+if (text.includes('size') || text.includes('kích cỡ')) {
+    return 'Size S: từ 45-50KG\nSize M: từ 50-55KG\nSize L: từ 55-62KG\nSize XL: từ 62-72KG';}
+  if (text.includes('đơn hàng') || text.includes('mã đơn') || text.includes('theo dõi'))
+    return 'Bạn gửi giúp mình **mã đơn** (vd MZ123456) để mình kiểm tra tình trạng đơn.';
+  if (text.includes('liên hệ') || text.includes('hotline') || text.includes('sđt'))
+    return 'Hotline/Zalo: 038 440 2256 – hỗ trợ 08:00–22:00 mỗi ngày.';
+  return 'Mình chưa hiểu ý 🥺. Chọn 1 câu bên dưới nhé.';
 }
 
 export default function Chat() {
   const tabBarH = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
-  const BOTTOM_OFFSET = Math.max(tabBarH, insets.bottom) + 6; // đội panel lên khỏi TabBar
+  const BOTTOM_OFFSET = Math.max(tabBarH, insets.bottom) + 0; // đội panel lên khỏi TabBar
 
   const PANEL_MAX_H = 180;
   const BOTTOM_STACK_H = PANEL_MAX_H + 10;
@@ -163,17 +142,24 @@ export default function Chat() {
 const W = Dimensions.get("window").width;
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#f66060ff",
+
+    backgroundColor: "#ff4d4f",
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "500",
-    textAlign: "center",
+
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '500',
+    textAlign: 'center',
+
     letterSpacing: 0.2,
   },
 
@@ -204,7 +190,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  listCol: { paddingBottom: 4, gap: 8 },
+  listCol: {
+  paddingBottom: 4,
+  gap: 8,             // khoảng cách giữa các nút
+  flexDirection: 'row', // xếp ngang
+  flexWrap: 'wrap',     // xuống hàng khi đầy
+},
+
   rowBtn: {
     backgroundColor: "#fff",
     borderRadius: 14,
