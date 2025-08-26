@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../src/AuthContext'; // Đường dẫn tới AuthContext của bạn
+import { useAuth } from '../src/AuthContext'; // Đường dẫn tới AuthContext 
 import { BASE_URL } from '../src/config';
 import { AxiosError } from 'axios';
 import { useRouter } from 'expo-router';
@@ -161,14 +161,15 @@ const styles = StyleSheet.create({
         paddingTop: 16,
     },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: '6%',
-        paddingVertical: '9%',
-        backgroundColor: '#f66060ff',
-        borderBottomRightRadius: 30,
+        backgroundColor: "#ff4d4f",
+        paddingTop: 50,
+        paddingBottom: 16,
+        paddingHorizontal: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
 
     },
     headerIconLeft: {
@@ -182,7 +183,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: '700',
-        marginTop: '1%',
         color: 'white'
     },
     label: {

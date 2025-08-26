@@ -127,21 +127,24 @@ const styles = StyleSheet.create({
 
     },
     header: {
-        flexDirection: 'row',
-        padding: 25,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#f66',
-        borderBottomRightRadius: 30,
+        backgroundColor: "#ff4d4f",
+        paddingTop: 50,
+        paddingBottom: 16,
+        paddingHorizontal: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
 
     },
 
     title: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '600',
         marginBottom: 0,
-        color: "#fff"
+        color: "#fff",
+        marginLeft:20
     },
     noResultText: {
         textAlign: 'center',
@@ -181,15 +184,15 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     ratingRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 4,
-},
-ratingText: {
-  fontSize: 12,
-  color: '#555',
-  marginLeft: 6,
-},
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    ratingText: {
+        fontSize: 12,
+        color: '#555',
+        marginLeft: 6,
+    },
 
 });
 

@@ -38,7 +38,7 @@ const subCategories = [
     title: "Áo hoodie",
     image: require("../../assets/images/hoodie.png"),
   },
-  { id: 4, title: "Áo len", image: require("../../assets/images/sweater.png") },
+  { id: 4, title: "Áo dạ", image: require("../../assets/images/sweater.png") },
   {
     id: 5,
     title: "Áo khoác",
@@ -52,9 +52,8 @@ const subCategories = [
 ];
 
 const filters = [
-  { key: 'sold_desc',  label: 'Bán nhiều nhất' }, 
-  { key: 'price_desc', label: 'Giá cao' },        
-  { key: 'price_asc',  label: 'Giá thấp' },      
+  { key: 'price_desc', label: 'Giá cao' },
+  { key: 'price_asc', label: 'Giá thấp' },
 ];
 
 const Stars = ({ value = 0, size = 12 }: { value?: number; size?: number }) => {
@@ -80,14 +79,14 @@ export default function CategoryList() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const router = useRouter();
   const onPressFilter = (f: { key: string; label: string }) => {
-  if (f.key === 'sold_desc') {
-    router.push('/BestSelling');    
-  } else if (f.key === 'price_desc') {
-    router.push('/PriceHigh');      
-  } else if (f.key === 'price_asc') {
-    router.push('/PriceLow');      
-  }
-};
+    if (f.key === 'sold_desc') {
+      router.push('/BestSelling');
+    } else if (f.key === 'price_desc') {
+      router.push('/PriceHigh');
+    } else if (f.key === 'price_asc') {
+      router.push('/PriceLow');
+    }
+  };
   const { token } = useAuth();
   const handlePress = (id: string) => {
     router.push({ pathname: "/(auth)/ProductDetail", params: { id } });
@@ -101,7 +100,7 @@ export default function CategoryList() {
           : undefined;
         const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
         const res = await axios.get(url, { headers });
-    
+
         setFeaturedProducts(
           res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite }))
         );
@@ -194,16 +193,16 @@ export default function CategoryList() {
       </View>
       {/* Filter */}
       <View style={styles.filterRow}>
-  {filters.map((f) => (
-    <TouchableOpacity
-      key={f.key}
-      style={styles.filterBtn}
-      onPress={() => onPressFilter(f)}
-    >
-      <Text style={styles.filterText}>{f.label}</Text>
-    </TouchableOpacity>
-  ))}
-</View>
+        {filters.map((f) => (
+          <TouchableOpacity
+            key={f.key}
+            style={styles.filterBtn}
+            onPress={() => onPressFilter(f)}
+          >
+            <Text style={styles.filterText}>{f.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Gợi ý sản phẩm */}
       <Text style={styles.sectionTitle}>Gợi Ý Riêng Cho Bạn</Text>
@@ -288,6 +287,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     flex: 1,
+    marginLeft: 20
+
   },
 
   subCategoryList: {
@@ -344,17 +345,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   productCard: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#eee",
+    backgroundColor: '#fff',
+        width: '48%',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#eee',
+        padding: 10,
+        marginBottom: 16,
   },
   productImage: {
-    width: "100%",
-    height: 200,
-  },
+    width: '100%',
+        height: 150,
+        borderRadius: 8,
+        marginBottom: 8,
+        resizeMode: 'cover',
+   },
   productPrice: {
     fontWeight: "bold",
     fontSize: 14,
