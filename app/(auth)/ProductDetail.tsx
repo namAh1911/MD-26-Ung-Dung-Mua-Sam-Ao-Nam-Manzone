@@ -110,6 +110,11 @@ export default function ProductDetail() {
     };
 
     const handleAddToCart = () => {
+        if (!token) {
+            Alert.alert('Bạn cần đăng nhập để mua hàng');
+            router.push('/(auth)/LoginScreen');
+            return;
+        }
         if (!selectedColor || !selectedSize) {
             Alert.alert('Vui lòng chọn đầy đủ màu sắc và kích cỡ');
             return;
@@ -160,6 +165,11 @@ export default function ProductDetail() {
     };
 
     const handleBuyNow = () => {
+        if (!token) {
+            Alert.alert('Bạn cần đăng nhập để mua hàng');
+            router.push('/(auth)/LoginScreen');
+            return;
+        }
         if (!selectedColor || !selectedSize) {
             Alert.alert('Vui lòng chọn đầy đủ màu sắc và kích cỡ');
             return;

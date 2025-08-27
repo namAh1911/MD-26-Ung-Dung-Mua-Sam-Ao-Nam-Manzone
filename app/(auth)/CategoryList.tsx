@@ -323,8 +323,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     flex: 1,
-    marginLeft: 20
-
+    marginLeft: 20,
   },
   // Search box
   searchContainer: {
@@ -388,11 +387,11 @@ const styles = StyleSheet.create({
   },
 
   productImage: {
-    width: '100%',
+    width: "100%",
     height: 150,
     borderRadius: 8,
     marginBottom: 8,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
 
   productPrice: {

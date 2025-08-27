@@ -1,6 +1,7 @@
 
 
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../src/AuthContext';
@@ -15,6 +16,7 @@ type Props = {
 
 export default function ProductComments({ productId, onChanged }: Props) {
   const { token, user } = useAuth();
+  const router = useRouter();
   const userId = (user as any)?.id || (user as any)?._id;
   const [items, setItems] = useState<CommentDoc[]>([]);
   const [loading, setLoading] = useState(false);
@@ -124,7 +126,7 @@ export default function ProductComments({ productId, onChanged }: Props) {
 
       {/* Editor */}
       {!token ? (
-        <TouchableOpacity style={{ backgroundColor: '#111', padding: 12, borderRadius: 8, alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => router.push('/(auth)/LoginScreen')} style={{ backgroundColor: '#111', padding: 12, borderRadius: 8, alignItems: 'center' }}>
           <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng nhập để đánh giá</Text>
         </TouchableOpacity>
       ) : (
