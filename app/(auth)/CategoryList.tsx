@@ -96,29 +96,27 @@ export default function CategoryList() {
   const handlePress = (id: string) => {
     router.push({ pathname: "/(auth)/ProductDetail", params: { id } });
   };
+  const fetchFeaturedProducts = async () => {
+    try {
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : undefined;
+      const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
+      const res = await axios.get(url, { headers });
 
+      setFeaturedProducts(
+        res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite }))
+      );
+    } catch (error) {
+      console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
+    }
+  };
+  
   useEffect(() => {
-
-    const fetchFeaturedProducts = async () => {
-      try {
-        const headers = token
-          ? { Authorization: `Bearer ${token}` }
-          : undefined;
-        const url = `${BASE_URL}/api/products?featured=true&withFavorite=true`;
-        const res = await axios.get(url, { headers });
-
-        setFeaturedProducts(
-          res.data.map((p: Product) => ({ ...p, isFavorite: !!p.isFavorite }))
-        );
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm nổi bật:", error);
-      }
-    };
-      
     fetchFeaturedProducts();
   }, [token]);
 
-
+  
   const handleSearch = async () => {
     const q = searchQuery.trim();
     if (!q) {
@@ -193,12 +191,12 @@ export default function CategoryList() {
             onPress={() => setShowSearch(!showSearch)}
           />
           <Ionicons
-    name="cart-outline"
-    color="#fff"
-    size={22}
-    onPress={() => router.push("/(tabs)/Cart")} 
-  />
-          
+            name="cart-outline"
+            color="#fff"
+            size={22}
+            onPress={() => router.push("/(tabs)/Cart")}
+          />
+
         </View>
       </View>
 
@@ -381,21 +379,21 @@ const styles = StyleSheet.create({
   columnWrapper: { justifyContent: "space-between", paddingHorizontal: 12 },
   productCard: {
     backgroundColor: '#fff',
-        width: '48%',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#eee',
-        padding: 10,
-        marginBottom: 16,
+    width: '48%',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
+    padding: 10,
+    marginBottom: 16,
   },
 
   productImage: {
     width: '100%',
-        height: 150,
-        borderRadius: 8,
-        marginBottom: 8,
-        resizeMode: 'cover',
-   },
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 8,
+    resizeMode: 'cover',
+  },
 
   productPrice: {
     fontWeight: "bold",
