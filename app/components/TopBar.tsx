@@ -1,9 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Chuông
-import { Feather } from '@expo/vector-icons';  // Menu
-import { useDrawer } from './DrawerContext';   // 
-import { useNotifications } from "../src/NotificationContext";
+import { Feather, Ionicons } from '@expo/vector-icons'; // Chuông
 import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNotifications } from "../src/NotificationContext";
+import { useDrawer } from './DrawerContext'; // 
 
 
 const TopBar = () => {
@@ -19,11 +18,13 @@ const TopBar = () => {
         <Feather name="menu" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* Logo */}
-      <Text style={styles.logo}>
-        <Text style={{ color: 'black', fontWeight: 'bold' }}>Manzone</Text>
-        <Text style={{ color: '#fff' }}>Poly</Text>
-      </Text>
+       {/* Logo */}
+      <TouchableOpacity onPress={() => router.replace('/(tabs)/Home')}>
+        <Text style={styles.logo}>
+          <Text style={{ color: 'black', fontWeight: 'bold' }}>Manzone</Text>
+          <Text style={{ color: '#fff' }}>Poly</Text>
+        </Text>
+      </TouchableOpacity>
 
       {/* Notification icon */}
       <TouchableOpacity onPress={() => router.push("/(auth)/NotificationScreen")}>

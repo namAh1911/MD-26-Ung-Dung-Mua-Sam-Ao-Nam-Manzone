@@ -38,7 +38,9 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.logo}>MazonePoly</Text>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)/Home')}>
+          <Text style={styles.logo}>MazonePoly</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>XIN CHÀO,</Text>
         <Text style={styles.sub}>Vui lòng nhập email và mật khẩu để tiếp tục</Text>
 

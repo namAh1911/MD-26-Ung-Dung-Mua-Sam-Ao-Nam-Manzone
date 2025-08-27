@@ -6,14 +6,22 @@ import {
   Ionicons, MaterialIcons
 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../src/AuthContext';
 
 export default function Profile() {
   const router = useRouter();
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const { user, logout } = useAuth(); // Lấy user và hàm logout từ context
+  const { user, token, logout } = useAuth(); // Lấy user và hàm logout từ context
+
+  // Nếu chưa đăng nhập, chuyển tới màn hình đăng nhập
+  useEffect(() => {
+    if (!token) {
+      Alert.alert('Bạn cần đăng nhập để truy cập trang này');
+      router.replace('/(auth)/LoginScreen');
+    }
+  }, [token]);
 
   const handleLogout = async () => {
     await logout(); // Dùng hàm logout từ context
@@ -184,7 +192,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', },
   header: {
     backgroundColor: '#ff4d4f',
-    paddingTop: 40,
+    paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -194,8 +202,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   avatar: {
-    width: 45,
-    height: 45,
+    width: 60,
+    height: 60,
     borderRadius: 30,
     marginRight: '2%',
   },
