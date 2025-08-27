@@ -1,4 +1,4 @@
-// SocketProvider.tsx
+// src/SocketProvider.tsx
 import React, { createContext, useContext, useEffect } from "react";
 import { socket } from "./socket";
 import { useAuth } from "./AuthContext";
@@ -8,84 +8,100 @@ import { useNotifications } from "./NotificationContext";
 
 // Config notification
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true, // iOS
-    shouldShowList: true,   // iOS
-  }),
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true, // iOS
+        shouldShowList: true,   // iOS
+    }),
 });
-
 
 const SocketContext = createContext<Socket | null>(null);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  const { fetchNotifications, addNotification } = useNotifications();
+    const { user } = useAuth();
+    const { fetchNotifications, addNotification } = useNotifications();
 
-  useEffect(() => {
-    if (!user) {
-      if (socket.connected) socket.disconnect();
-      return;
-    }
+    useEffect(() => {
+        console.log("👤 [SocketProvider] Current user:", user);
 
-    if (!socket.connected) {
-      socket.connect();
-    }
+        if (!user) {
+            if (socket.connected) {
+                socket.disconnect();
+                console.log("🔌 Socket disconnected vì không có user");
+            }
+            return;
+        }
 
-    const handleConnect = () => {
-      console.log("🟢 Socket connected:", socket.id);
-      socket.emit("register", user.id);
-    };
+        if (!socket.connected) {
+            console.log("🔄 Đang connect socket tới server...");
+            socket.connect();
+        }
 
-    const handleOrderUpdate = async (data: any) => {
-      console.log("📦 Đơn hàng cập nhật:", data);
+        const handleConnect = () => {
+            console.log("🟢 Socket connected:", socket.id, "for user", user.id);
+            socket.emit("register", user.id);
+        };
 
-      // Local notification
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "🔔 Cập nhật đơn hàng",
-          body: `Đơn hàng của bạn #${data.orderId.slice(-6)} → ${data.newStatus}`,
-          sound: "default",
-        },
-        trigger: null,
-      });
+        const handleDisconnect = (reason: string) => {
+            console.warn("⚠️ Socket disconnected:", reason);
+        };
 
-      //  Add trực tiếp vào context để badge nhảy số
-      addNotification({
-        _id: Date.now().toString(), // tạm id local
-        message: `Đơn hàng #${data.orderId.slice(-6)} → ${data.newStatus}`,
-        read: false,
-        createdAt: new Date().toISOString(),
-        order_id: data.orderId,
-        image: data.image || "",
-        title: "Cập nhật đơn hàng",
-        productName: data.productName || "",
-      });
+        const handleConnectError = (err: any) => {
+            console.error("❌ Socket connect error:", err.message);
+        };
 
-      // Fetch lại từ server (đảm bảo sync DB)
-      fetchNotifications?.();
-    };
+        const handleOrderUpdate = async (data: any) => {
+            console.log("📦 App nhận orderStatusUpdated:", data);
 
-    socket.on("connect", handleConnect);
-    socket.on("orderStatusUpdated", handleOrderUpdate);
+            // Local notification
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "🔔 Cập nhật đơn hàng",
+                    body: `Đơn hàng #${data.orderId.slice(-6)} (${data.productName || "Sản phẩm"}) → ${data.newStatus}`,
+                    sound: "default",
+                },
+                trigger: null,
+            });
 
-    return () => {
-      socket.off("connect", handleConnect);
-      socket.off("orderStatusUpdated", handleOrderUpdate);
-    };
-  }, [user, fetchNotifications, addNotification]);
+            // Add trực tiếp vào context để badge nhảy số
+            addNotification({
+                _id: Date.now().toString(), // tạm id local
+                message: `Đơn hàng #${data.orderId.slice(-6)} → ${data.newStatus}`,
+                read: false,
+                createdAt: new Date().toISOString(),
+                order_id: data.orderId,
+                image: data.image || "",
+                title: "Cập nhật đơn hàng",
+                productName: data.productName || "",
+            });
 
-  return (
-    <SocketContext.Provider value={socket}>
-      {children}
-    </SocketContext.Provider>
-  );
+            fetchNotifications?.(); // Sync DB
+        };
+
+        socket.on("connect", handleConnect);
+        socket.on("disconnect", handleDisconnect);
+        socket.on("connect_error", handleConnectError);
+        socket.on("orderStatusUpdated", handleOrderUpdate);
+
+        return () => {
+            socket.off("connect", handleConnect);
+            socket.off("disconnect", handleDisconnect);
+            socket.off("connect_error", handleConnectError);
+            socket.off("orderStatusUpdated", handleOrderUpdate);
+        };
+    }, [user, fetchNotifications, addNotification]);
+
+    return (
+        <SocketContext.Provider value={socket}>
+            {children}
+        </SocketContext.Provider>
+    );
 };
 
 export const useSocket = () => {
-  const ctx = useContext(SocketContext);
-  if (!ctx) throw new Error("useSocket phải nằm trong <SocketProvider>");
-  return ctx;
+    const ctx = useContext(SocketContext);
+    if (!ctx) throw new Error("useSocket phải nằm trong <SocketProvider>");
+    return ctx;
 };

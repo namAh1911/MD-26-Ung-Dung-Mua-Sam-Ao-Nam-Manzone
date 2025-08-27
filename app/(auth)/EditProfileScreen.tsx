@@ -15,6 +15,7 @@ import axios, { AxiosError } from 'axios';
 import { useRouter } from 'expo-router';
 import { BASE_URL } from '../src/config';
 import { useAuth } from '../src/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -126,9 +127,15 @@ export default function EditProfileScreen() {
   return (
     <View style={styles.container}>
 
-      <View style={styles.headerBar}>
-        <Text style={styles.headerText}>THÔNG TIN CÁ NHÂN</Text>
+      
+        <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={'#fff'} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Thông tin cá nhân</Text>
+        <View style={{ width: 24 }} />
       </View>
+      
 <View style={styles.container1}>
       <TouchableOpacity onPress={handlePickAvatar} style={styles.avatarWrapper}>
         {avatarUrl ? (
@@ -226,13 +233,25 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
     marginBottom: 24,
   },
+  header: {
+    backgroundColor: "#ff4d4f",
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+
+  },
   headerText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
     textTransform: 'uppercase',
   },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 0, color: '#fff',},
   avatarWrapper: { alignSelf: 'center', marginVertical: 10 },
   avatar: { width: 90, height: 90, borderRadius: 45 },
   editIcon: {

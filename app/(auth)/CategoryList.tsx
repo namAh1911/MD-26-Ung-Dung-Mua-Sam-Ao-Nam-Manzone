@@ -196,6 +196,7 @@ export default function CategoryList() {
             size={22}
             onPress={() => router.push("/(tabs)/Cart")}
           />
+
         </View>
       </View>
 
@@ -376,11 +377,11 @@ const styles = StyleSheet.create({
   },
   columnWrapper: { justifyContent: "space-between", paddingHorizontal: 12 },
   productCard: {
-    backgroundColor: "#fff",
-    width: "48%",
+    backgroundColor: '#fff',
+    width: '48%',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: '#eee',
     padding: 10,
     marginBottom: 16,
   },
