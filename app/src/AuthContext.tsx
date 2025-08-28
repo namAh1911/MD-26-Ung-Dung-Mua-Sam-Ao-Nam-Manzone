@@ -8,11 +8,16 @@ import React, {
   useState,
 } from 'react';
 import { BASE_URL } from './config';
+import {
+  handleAppTermination,
+  initializeAppStateMonitoring,
+  setUserOnline
+} from './services/onlineStatusService';
 
 interface AuthContextType {
   user: any;
   token: string | null;
-  setToken: (token: string | null) => void;
+  setToken: (token: string | null) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: (overrideToken?: string) => Promise<void>;
@@ -73,6 +78,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(newUser);
   };
 
+  // Connect socket and set user online when user logs in
+  useEffect(() => {
+    if (user && token) {
+      // Initialize app state monitoring
+      const subscription = initializeAppStateMonitoring(user.id, token);
+      
+      // Set user online after a short delay to ensure everything is ready
+      const timer = setTimeout(() => {
+        setUserOnline(user.id, token);
+      }, 1000);
+      
+      return () => {
+        clearTimeout(timer);
+        subscription?.remove();
+        // Set user offline when component unmounts
+        handleAppTermination(user.id, token);
+      };
+    }
+  }, [user, token]);
 
   const refreshUser = async (overrideToken?: string) => {
     try {
@@ -92,16 +116,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         ...rawUser,
       };
 
-
-
       setUser(newUser);
       await AsyncStorage.setItem('user', JSON.stringify(newUser));
 
       if (overrideToken) {
         await setToken(overrideToken);
       }
-    } catch (err) {
-      console.log('Lỗi khi load lại user:', err);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
     }
   };
 
