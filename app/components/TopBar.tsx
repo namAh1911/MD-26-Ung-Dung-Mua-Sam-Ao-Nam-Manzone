@@ -1,10 +1,15 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Chuông
-import { Feather } from '@expo/vector-icons';  // Menu
-import { useDrawer } from './DrawerContext';   // Thêm dòng này
+import { Feather, Ionicons } from '@expo/vector-icons'; // Chuông
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNotifications } from "../src/NotificationContext";
+import { useDrawer } from './DrawerContext'; // 
+
 
 const TopBar = () => {
   const { openDrawer } = useDrawer(); // Lấy hàm mở menu
+  const { unreadCount } = useNotifications();
+  const router = useRouter();
+  
 
   return (
     <View style={styles.topBar}>
@@ -13,15 +18,24 @@ const TopBar = () => {
         <Feather name="menu" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* Logo */}
-      <Text style={styles.logo}>
-        <Text style={{ color: 'black', fontWeight: 'bold' }}>Manzone</Text>
-        <Text style={{ color: '#fff' }}>Poly</Text>
-      </Text>
+       {/* Logo */}
+      <TouchableOpacity onPress={() => router.replace('/(tabs)/Home')}>
+        <Text style={styles.logo}>
+          <Text style={{ color: 'black', fontWeight: 'bold' }}>Manzone</Text>
+          <Text style={{ color: '#fff' }}>Poly</Text>
+        </Text>
+      </TouchableOpacity>
 
       {/* Notification icon */}
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push("/(auth)/NotificationScreen")}>
         <Ionicons name="notifications-outline" size={24} color="#fff" />
+        {unreadCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </Text>
+        </View>
+      )}
       </TouchableOpacity>
     </View>
   );
@@ -43,6 +57,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  badge: {
+    position: "absolute",
+    right: -6,
+    top: -4,
+    backgroundColor: '#4d85ffff',
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    minWidth: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: { color: "#fff", fontSize: 11, fontWeight: "bold" },
 });
 
 export default TopBar;

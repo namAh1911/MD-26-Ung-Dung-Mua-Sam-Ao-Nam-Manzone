@@ -1,11 +1,13 @@
+import axios, { AxiosError } from 'axios';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert
+  Alert,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/AuthContext'; // 👈 Sử dụng context
-import axios from 'axios';
-import { AxiosError } from 'axios';
 import { BASE_URL } from '../src/config';
 
 export default function OTPVerifyScreen() {

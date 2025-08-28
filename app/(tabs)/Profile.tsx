@@ -1,15 +1,27 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import {
-  Ionicons, MaterialIcons, FontAwesome5, Entypo, AntDesign, FontAwesome
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  FontAwesome5,
+  Ionicons, MaterialIcons
 } from '@expo/vector-icons';
-import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../src/AuthContext';
 
 export default function Profile() {
   const router = useRouter();
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const { user, logout } = useAuth(); // Lấy user và hàm logout từ context
+  const { user, token, logout } = useAuth(); // Lấy user và hàm logout từ context
+
+  // Nếu chưa đăng nhập, chuyển tới màn hình đăng nhập
+  useEffect(() => {
+    if (!token) {
+      Alert.alert('Bạn cần đăng nhập để truy cập trang này');
+      router.replace('/(auth)/LoginScreen');
+    }
+  }, [token]);
 
   const handleLogout = async () => {
     await logout(); // Dùng hàm logout từ context
@@ -18,19 +30,36 @@ export default function Profile() {
   };
 
   const handleNavigate = (label: string) => {
-    if (label === 'Thông tin cá nhân') {
-      router.push('/(auth)/EditProfileScreen');
-    }
-    if (label === 'Đổi mật khẩu') {
-      router.push('/(auth)/ChangePasswordScreen');
-    }
-    if (label === 'Quản lý sổ địa chỉ') {
-      router.push('/(auth)/AddressListScreen');
-    }
-    if (label === 'Đơn hàng của tôi') {
-      router.push('/(auth)/MyOrdersScreen');
-    }
-  };
+  if (label === 'Thông tin cá nhân') {
+    router.push('/(auth)/EditProfileScreen');
+  }
+  if (label === 'Đổi mật khẩu') {
+    router.push('/(auth)/ChangePasswordScreen');
+  }
+  if (label === 'Quản lý sổ địa chỉ') {
+    router.push('/(auth)/AddressListScreen');
+  }
+  if (label === 'Đơn hàng của tôi') {
+    router.push('/(auth)/MyOrdersScreen');
+  }
+
+ 
+  if (label === 'Giới thiệu cửa hàng') {
+    router.push('/(auth)/AboutStoreScreen' as any);
+  }
+  if (label === 'Giấy phép kinh doanh') {
+    router.push('/(auth)/BusinessLicenseScreen' as any);
+  }
+  if (label === 'Chính sách') {
+    router.push('/(auth)/PoliciesScreen' as any);
+  }
+  if (label === 'Chính sách đổi trả') {
+    router.push('/(auth)/ReturnPolicyScreen' as any);
+  }
+  if (label === 'Chính sách giao hàng') {
+    router.push('/(auth)/ShippingPolicyScreen' as any);
+  }
+};
 
 
   if (!user) {
@@ -115,6 +144,7 @@ export default function Profile() {
             { icon: 'refresh', label: 'Chính sách đổi trả' },
             { icon: 'car', label: 'Chính sách giao hàng' },
           ]}
+          onPressItem={handleNavigate} 
         />
       </ScrollView>
     </View>

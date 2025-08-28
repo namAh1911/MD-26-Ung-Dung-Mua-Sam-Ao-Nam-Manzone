@@ -27,7 +27,7 @@ export type Product = {
   oldPrice?: number;
   image: string;
   rating?: number;
-  ratingAvg?: number;   
+  ratingAvg?: number;
   ratingCount?: number;
 };
 
@@ -62,7 +62,7 @@ export default function HomeScreen() {
       console.error('Lỗi khi fetch sản phẩm nổi bật:', error);
     }
   }, []);
-   // gọi 1 lần khi mount
+  // gọi 1 lần khi mount
   useEffect(() => {
     fetchFeaturedProducts();
   }, [fetchFeaturedProducts]);
@@ -71,28 +71,28 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchFeaturedProducts();
-      return () => {};
+      return () => { };
     }, [fetchFeaturedProducts])
   );
 
 
-   const handleSearch = async () => {
-  const q = searchQuery.trim();
-  if (!q) {
-    await fetchFeaturedProducts();   
+  const handleSearch = async () => {
+    const q = searchQuery.trim();
+    if (!q) {
+      await fetchFeaturedProducts();
       return;
-  }
-  try {
-    const res = await axios.get(`${BASE_URL}/api/products`, { params: { name: q } });
-    setFeaturedProducts(res.data);
-  } catch (error: any) {
-    if (error?.response?.status === 404) {
-      setFeaturedProducts([]);      
-    } else {
-      console.error('Lỗi khi tìm kiếm sản phẩm:', error);
     }
-  }
-};
+    try {
+      const res = await axios.get(`${BASE_URL}/api/products`, { params: { name: q } });
+      setFeaturedProducts(res.data);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        setFeaturedProducts([]);
+      } else {
+        console.error('Lỗi khi tìm kiếm sản phẩm:', error);
+      }
+    }
+  };
 
 
   const categories = [
@@ -156,14 +156,14 @@ export default function HomeScreen() {
       <Text style={styles.oldPrice}>
         {(item.oldPrice || item.price * 1.2).toLocaleString()}đ
       </Text>
-     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-  <Stars value={(item.ratingAvg ?? 0)} size={12} />
-<Text style={{ fontSize: 12, color: '#555', marginLeft: 6 }}>
-  {(item.ratingAvg ?? 0).toFixed(1)}
-  {!!item.ratingCount && ` (${item.ratingCount})`}
-</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+        <Stars value={(item.ratingAvg ?? 0)} size={12} />
+        <Text style={{ fontSize: 12, color: '#555', marginLeft: 6 }}>
+          {(item.ratingAvg ?? 0).toFixed(1)}
+          {!!item.ratingCount && ` (${item.ratingCount})`}
+        </Text>
 
-</View>
+      </View>
 
     </TouchableOpacity>
   );
@@ -184,12 +184,12 @@ export default function HomeScreen() {
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#aaa" style={{ marginRight: 8 }} />
           <TextInput
-  placeholder="Tìm kiếm sản phẩm"
-  style={styles.searchInput}
-  value={searchQuery} // xử lý hàm tìm kiếm
-  onChangeText={setSearchQuery}
-  onSubmitEditing={handleSearch}
-/>
+            placeholder="Tìm kiếm sản phẩm"
+            style={styles.searchInput}
+            value={searchQuery} // xử lý hàm tìm kiếm
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+          />
         </View>
       </View>
 
@@ -223,7 +223,7 @@ export default function HomeScreen() {
         <View style={{ paddingHorizontal: 10, marginTop: 0, marginBottom: 5 }}>
           <Carousel
             width={screenWidth - 20}
-            height={120}
+            height={100}
             data={banners}
             autoPlay
             scrollAnimationDuration={1000}
@@ -240,7 +240,7 @@ export default function HomeScreen() {
           <View style={styles.featuredTitleWrapper}>
             <Text style={styles.featuredTitle}>Sản phẩm nổi bật</Text>
           </View>
-          <View style={{ height: screenHeight * 0.5, paddingLeft: 10, paddingRight: 10, paddingBottom: 40 }}>
+          <View style={{ height: screenHeight * 0.5, paddingLeft: 10, paddingRight: 10, paddingBottom: 20 }}>
             <FlatList
               data={featuredProducts}
               keyExtractor={(item) => item._id}
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 0,
 
-    padding: 20,
+    padding: 10,
 
   },
 
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 3,
     marginBottom: 5,
-    borderRadius: 16,
+    borderRadius: 10,
   },
 
   featuredTitle: {

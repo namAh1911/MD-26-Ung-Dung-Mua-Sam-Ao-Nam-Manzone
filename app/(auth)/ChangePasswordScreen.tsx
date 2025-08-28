@@ -52,7 +52,11 @@ export default function ChangePasswordScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
         <Text style={styles.headerText}>ĐỔI MẬT KHẨU</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.container1}>
@@ -116,11 +120,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   headerBar: {
-    backgroundColor: '#FF4D4D',
-    paddingVertical: 30,
-    alignItems: 'center',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    backgroundColor: "#ff4d4f",
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     marginBottom: 24,
   },
   headerText: {

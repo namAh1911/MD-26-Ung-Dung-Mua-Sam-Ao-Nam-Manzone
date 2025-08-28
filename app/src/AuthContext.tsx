@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from 'react';
 import { BASE_URL } from './config';
 import {
-    handleAppTermination,
-    initializeAppStateMonitoring,
-    setUserOnline
+  handleAppTermination,
+  initializeAppStateMonitoring,
+  setUserOnline
 } from './services/onlineStatusService';
 
 interface AuthContextType {

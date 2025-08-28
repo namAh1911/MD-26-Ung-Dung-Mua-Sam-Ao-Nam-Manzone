@@ -1,6 +1,7 @@
 
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -15,6 +16,10 @@ export default function LoginScreen() {
       </TouchableOpacity>
       <TouchableOpacity style={styles.btnOutline} onPress={() => router.push('/RegisterScreen')}>
         <Text style={styles.btnOutlineText}>Đăng Ký</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.btnGhost} onPress={() => router.replace('/(tabs)/Home')}>
+        <Ionicons name="person-outline" size={18} color="#0039e6" style={{ marginRight: 8 }} />
+        <Text style={styles.btnGhostText}>Tiếp tục với tư cách khách</Text>
       </TouchableOpacity>
     </View>
   );
@@ -35,4 +40,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 40, borderRadius: 30,
   },
   btnOutlineText: { color: '#0039e6', paddingHorizontal: 8, fontSize: 16 },
+  btnGhost: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f7ff',
+    borderWidth: 1,
+    borderColor: '#cfd9ff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 12,
+  },
+  btnGhostText: { color: '#0039e6', fontSize: 14, fontWeight: '600' },
 });

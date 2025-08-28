@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-
-} from 'react-native';
-import { useCart } from '../src/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import Checkbox from 'expo-checkbox';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useCart } from '../src/CartContext';
 
 export default function Cart() {
   const { cart, setCart } = useCart();
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    paddingTop: '10%',
+    paddingTop: 50,
     borderBottomWidth: 1,
     borderColor: '#ddd',
   },
