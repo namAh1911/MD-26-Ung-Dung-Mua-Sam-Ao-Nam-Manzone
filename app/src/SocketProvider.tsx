@@ -49,7 +49,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         const handleConnectError = (err: any) => {
-            console.error("❌ Socket connect error:", err.message);
+            // console.error("❌ Socket connect error:", err.message);
         };
 
         const handleOrderUpdate = async (data: any) => {
